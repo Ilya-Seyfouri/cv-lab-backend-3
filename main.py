@@ -654,13 +654,24 @@ async def compile_latex(request: dict):
         # Compile with pdflatex (run twice for references)
         for run_num in range(2):
             print(f"=== PDFLATEX RUN {run_num + 1} ===")
-            result = subprocess.run(
-                ['pdflatex', '-interaction=nonstopmode', '-output-directory', temp_dir, str(tex_file)],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-            print(f"Return code: {result.returncode}")
+            try:
+                result = subprocess.run(
+                    ['pdflatex', '-interaction=nonstopmode', '-output-directory', temp_dir, str(tex_file)],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                print(f"Return code: {result.returncode}")
+                if result.returncode != 0:
+                    print(f"STDOUT: {result.stdout[:500]}")  # First 500 chars
+                    print(f"STDERR: {result.stderr[:500]}")
+            except FileNotFoundError as e:
+                print(f"ERROR: pdflatex not found! {e}")
+                raise HTTPException(status_code=500,
+                                    detail="pdflatex is not installed on the server. Please contact support.")
+            except Exception as e:
+                print(f"ERROR during compilation: {e}")
+                raise HTTPException(status_code=500, detail=f"Compilation error: {str(e)}")
 
         # Check if PDF was created
         if not pdf_file.exists():
@@ -702,6 +713,29 @@ async def compile_latex(request: dict):
         if temp_dir and Path(temp_dir).exists():
             shutil.rmtree(temp_dir, ignore_errors=True)
 
+
+import shutil
+
+
+@app.get("/test-latex")
+async def test_latex():
+    import subprocess
+    pdflatex_path = shutil.which('pdflatex')
+
+    # Try to run pdflatex --version
+    version = "Not available"
+    if pdflatex_path:
+        try:
+            result = subprocess.run(['pdflatex', '--version'], capture_output=True, text=True, timeout=5)
+            version = result.stdout[:200] if result.returncode == 0 else "Error running pdflatex"
+        except Exception as e:
+            version = f"Error: {str(e)}"
+
+    return {
+        "pdflatex_installed": pdflatex_path is not None,
+        "path": pdflatex_path,
+        "version": version
+    }
 
 @app.post("/generate-cover-letter")
 async def generate_cover_letter(request: dict):
