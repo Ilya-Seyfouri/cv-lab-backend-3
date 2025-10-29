@@ -1,0 +1,193 @@
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+\usepackage[margin=1.4cm]{geometry}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.15in}
+\addtolength{\textwidth}{0.3in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}\vspace{0pt}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Large \scshape Mack Crolanguage} \\[2mm]
+    \footnotesize \raisebox{-0.1\height}
+    \faPhone\ \underline{844-555-2626} ~ 
+    {\faEnvelope\  \underline{mackcrol@gmail.com}} ~ 
+    {\faLinkedin\ \underline{\href{}{}}}  ~
+    {\faGithub\ \underline{\href{}{}}} ~
+    {\faBriefcase\ \underline{\href{}{}}}
+    \vspace{-8pt}
+\end{center}
+
+%-----------EDUCATION-----------
+\section{Education} \\[1mm]
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Carnegie Mellon University}{Expected Graduation: December 2015}
+      {Master of Science, Computer Science}{Pittsburgh, PA}
+  \resumeSubHeadingListEnd
+    \resumeItemListStart
+        \resumeItem {Selected Coursework: Introduction to Machine Learning (10-601), Distributed Systems (15-440/640), Algorithm Design and Analysis (15-451/651), Web Apps Development (15-637), Machine Learning with Large Datasets (10-605), Graduate Artificial Intelligence (15-780)}
+    \resumeItemListEnd
+
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Birla Institute of Technology and Science, Pilani}{July 2014}
+      {Bachelor of Engineering (Hons.), Computer Science | Minor: M.Sc. Economics}{Pilani, India}
+  \resumeSubHeadingListEnd
+
+%-----------Experience---------------
+\section{Work Experience}
+    \resumeSubHeadingListStart
+        \resumeSubheading{Yahoo! Inc.}{May 2015 -- August 2015}{Software Engineering Intern}{Sunnyvale, CA} 
+            \resumeItemListStart
+                \resumeItem{Worked with the user data team in cloud services, contributing to the development and support of scalable backend systems.}
+            \resumeItemListEnd
+        \resumeSubheading{Ubiquitous Knowledge Processing Lab, TU Darmstadt}{January 2014 -- June 2014}{Research Intern}{Darmstadt, Germany} 
+            \resumeItemListStart
+                \resumeItem{Developed a Java application using the DKPro library to automatically solve multiple choice reading comprehension questions, achieving the 2nd best score in the CLEF Entrance Exams competition.}
+                \resumeItem{Implemented text similarity and textual entailment measures to enhance natural language processing capabilities for automated question answering.}
+            \resumeItemListEnd
+        \resumeSubheading{Computer Engineering and Networks Laboratory, ETH Zurich}{July 2013 -- December 2013}{Research Student}{Zurich, Switzerland}
+            \resumeItemListStart
+                \resumeItem{Built a Python application utilizing a tree-based learning algorithm to model deadline hit and miss patterns of periodic real-time tasks.}
+                \resumeItem{Applied formal verification techniques to generate regular language-based guarantees for predicting future deadline hits and misses in distributed systems.}
+            \resumeItemListEnd
+        \resumeSubheading{National Resource for Network Biology (NRNB)}{Summer 2012}{Developer (Google Summer of Code)}{Remote}
+            \resumeItemListStart
+                \resumeItem{Developed a Java app for Cytoscape, enabling users to visually analyze and modify complex molecular interaction networks.}
+            \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+%-----------PROJECTS-----------
+\section{Projects} 
+    \resumeSubHeadingListStart
+        \resumeProjectHeading
+            {\textbf{MapReduce Engine}}{Hadoop, Java, Distributed Systems}
+            \\[5mm]
+            \resumeItemListStart
+                \resumeItem{Implemented a Hadoop-like MapReduce facility with master and worker nodes for distributed map-reduce operations over large datasets, including a distributed file system and fault tolerance to address datanode failures.}
+            \resumeItemListEnd
+            \vspace{-10pt}
+
+        \resumeProjectHeading
+            {\textbf{Object Recognition Using CIFAR-10 Dataset}}{Python, Machine Learning}
+            \\[5mm]
+            \resumeItemListStart
+                \resumeItem{Trained models on the CIFAR-10 dataset using GIST descriptors and a kernelized (RBF) SVM, achieving 61\% test accuracy on a dataset of 15,000 images.}
+            \resumeItemListEnd
+            \vspace{-10pt}
+
+        \resumeProjectHeading
+            {\textbf{Intelligent Indoor Emergency Response System}}{Java, Algorithms}
+            \\[5mm]
+            \resumeItemListStart
+                \resumeItem{Developed a priority-based auctioning algorithm for task allocation in a multi-agent environment, using a modified A* algorithm to prioritize tasks based on proximity to fire locations for efficient evacuation.}
+            \resumeItemListEnd
+    \resumeSubHeadingListEnd
+
+%-----------LEADERSHIP-----------
+\section{Leadership} 
+    \resumeSubHeadingListStart
+        \resumeProjectHeading
+            {\textbf{Google Summer of Code Student Developer}}{Summer 2012}
+            \\[2mm]
+            \resumeItemListStart
+                \resumeItem{Selected as a Google Summer of Code participant, collaborating remotely with international mentors to deliver a production-ready Cytoscape app for network biology research.}
+                \resumeItem{Coordinated with open-source contributors to integrate user feedback and improve application usability.}
+            \resumeItemListEnd
+            \vspace{-10pt}
+
+    \resumeSubHeadingListEnd
+
+%-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{   
+     \textbf{Languages}{: Java, Python, C, SQL, Javascript, MATLAB, Perl} \\[1mm]
+     \textbf{Libraries/Frameworks}{: Hadoop, Django, DKPro for NLP, Maven, Git} \\ [1mm]
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+ \vspace{3pt}
+\vspace{10pt}
+
+\end{document}

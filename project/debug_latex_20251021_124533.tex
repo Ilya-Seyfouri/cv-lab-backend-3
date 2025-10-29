@@ -1,0 +1,168 @@
+```latex
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+\usepackage[margin=1.4cm]{geometry}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\addtolength{\oddsidemargin}{-0.15in}
+\addtolength{\textwidth}{0.3in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+\pdfgentounicode=1
+
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}\vspace{0pt}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Large \scshape Ilya Seyfouri} \\[2mm]
+    \footnotesize \raisebox{-0.1\height}
+    \faPhone\ \underline{envelpei.seyfouri@gmail.com} ~ 
+    {\faEnvelope\  \underline{linkedin.com/in/ilya-seyfouri}} ~ 
+    {\faGithub\ \underline{\href{https://github.com/Ilya-Seyfouri}{github.com/Ilya-Seyfouri}}} ~
+    {\faBriefcase\ \underline{\href{https://ilyas.up.railway.app}{ilyas.up.railway.app}}}
+    \vspace{-8pt}
+\end{center}
+
+%-----------EDUCATION-----------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Newcastle University}{Expected Graduation: May 2027}
+      {Bachelor of Computer Science}{Newcastle Upon Tyne}
+  \resumeSubHeadingListEnd
+    \resumeItemListStart
+        \resumeItem {Achieved First Class Honours in Year 1}
+        \vspace{-7pt}
+    \resumeItemListEnd
+    \vspace{-12pt}
+
+%-----------Work Experience---------------
+\section{Work Experience}
+    \resumeSubHeadingListStart
+        \resumeSubheading{Home Instead Central Leeds}{June 2025 -- August 2025}{Software Engineer Intern (Remote)}{Leeds}
+            \resumeItemListStart
+                \resumeItem{Independently developed a robust care management system, CareView, addressing challenges faced by patient relatives in accessing crucial care information and successfully gaining director approval.}
+                \resumeItem{Deployed CareView for seamless updates on treatment and schedules, greatly enhancing transparency and reducing uncertainty about patient care among relatives.}
+                \resumeItem{Facilitated weekly review meetings to present development progress and gather feedback, leading iterative improvements that resolved prior usability issues in the interface.}
+                \resumeItem{Showcased a successful live demo highlighting the system’s effectiveness in overcoming access and usability barriers to the management team.}
+            \resumeItemListEnd
+    \resumeSubHeadingListEnd
+    \vspace{-12pt}
+
+%-----------PROJECTS-----------
+\section{Projects}
+    \vspace{-5pt}
+    \resumeSubHeadingListStart
+        \resumeProjectHeading
+            {\textbf{CareView} \emph{($\href{https://github.com/Ilya-Seyfouri/CareView}{Source Code})}}{ReactJS, FastAPI, PostgreSQL}
+            \resumeItemListStart
+                \resumeItem{Implemented a role-based access and authentication system, utilizing JWT tokens and password hashing, to enhance security.}
+                \resumeItem{Engineered a carer-patient scheduling system incorporating real-time conflict detection to eliminate overlapping shifts.}
+                \resumeItem{Developed dynamic, role-specific dashboards to significantly improve user experience for carers, families, and management.}
+                \resumeItem{Designed an efficient PostgreSQL database featuring many-to-many relationships to optimize data management.}
+                \resumeItem{Constructed over 25 RESTful API endpoints with FastAPI, ensuring reliable user interactions through Pydantic input validation and robust testing using pytest.}
+            \resumeItemListEnd
+    \resumeSubHeadingListEnd
+    \vspace{-28pt}
+
+%-----------LEADERSHIP-----------
+\section{Leadership} 
+    \vspace{-5pt}
+    \resumeSubHeadingListStart
+        \resumeProjectHeading
+            {\textbf{Peer Mentor}}{August 2025 -- Present}
+            \resumeItemListStart
+                \resumeItem{Provide essential academic guidance and support to first-year students, assisting them in navigating university life and achieving academic success.}
+            \resumeItemListEnd
+    \resumeSubHeadingListEnd
+    \vspace{-12pt}
+
+%-----------TECHNICAL SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{   
+     \textbf{Languages}{: Python, Java, JavaScript, SQL, HTML5, CSS} \\[1mm]
+     \textbf{Libraries/Frameworks}{: FastAPI, ReactJS, PostgreSQL} \\[1mm]
+     \textbf{Tools}{: Git} 
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+ \vspace{3pt}
+\vspace{10pt}
+
+\end{document}
+```
