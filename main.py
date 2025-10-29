@@ -218,7 +218,7 @@ app = FastAPI(title="CV Editor API")
 # With this (you'll update the Railway URL after frontend is deployed):
 origins = [
     "http://localhost:3000",
-    "https://cv-lab.up.railway.app",  # Allow all Railway domains temporarily
+    "https://cvlab.up.railway.app",  # Allow all Railway domains temporarily
     # Add your actual frontend URL here after deploying frontend
 ]
 
