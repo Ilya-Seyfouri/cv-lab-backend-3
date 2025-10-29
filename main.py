@@ -1,6 +1,4 @@
-from datetime import datetime
 
-from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
@@ -14,7 +12,6 @@ import subprocess
 import tempfile
 import shutil
 from pathlib import Path
-import json
 from fpdf import FPDF
 import base64
 
