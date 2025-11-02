@@ -24,7 +24,7 @@ async def get_current_user(
 
     try:
         # Verify token and get user
-        user_response = supabase.auth.get_user(token)
+        user_response = await supabase.auth.get_user(token)
         return user_response.user
 
 

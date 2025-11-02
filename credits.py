@@ -7,7 +7,7 @@ async def get_user_credits(user_id: str):
     Query Supabase for user's credit and subscription info.
     """
     try:
-        response = supabase.table('profiles') \
+        response = await supabase.table('profiles') \
             .select('id, credits_remaining, is_subscribed, subscription_status') \
             .eq('id', user_id) \
             .single() \
@@ -47,7 +47,7 @@ async def check_and_use_credit(user_id: str):
 
     # Decrement credits_remaining by 1
     new_credits = profile['credits_remaining'] - 1
-    supabase.table('profiles') \
+    await supabase.table('profiles') \
         .update({'credits_remaining': new_credits}) \
         .eq('id', user_id) \
         .execute()

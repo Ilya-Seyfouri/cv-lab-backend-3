@@ -437,7 +437,7 @@ async def generate_cv(request: Request, data: dict, current_user = Depends(get_c
     Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
     """
 
-    await check_and_use_credit(current_user.id)
+    #await check_and_use_credit(current_user.id)
 
     job_description = data.get("job_description", "")
     user_cv = data.get("user_cv", "")
@@ -775,7 +775,7 @@ async def test_latex():
     }
 
 @app.post("/generate-cover-letter")
-@limiter.limit("5/minute")
+#@limiter.limit("5/minute")
 async def generate_cover_letter(request: Request, data: dict, current_user = Depends(get_current_user)):
     """
     Generates a tailored cover letter following strict requirements.
