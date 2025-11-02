@@ -3,38 +3,24 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import supabase
 import logging, sys
 
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
-
-
-
+logger = logging.getLogger("uvicorn.error")  # ensures it prints in Railway logs
 security = HTTPBearer()
 
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials if credentials else None
+    logger.info(f"Authorization header token received: {token}")
 
-async def get_current_user(request: Request,
-        credentials: HTTPAuthorizationCredentials = Depends(security)
-):
-    """
-    Extract user from JWT token in Authorization header.
-    Returns user dict with id, email, etc.
-    """
-
-    logger.debug("get_current_user called")
-    logger.debug(f"Headers: {request.headers}")
-    logger.debug(f"Auth credentials: {credentials}")
-    token = credentials.credentials
-
-    logger.debug(f"Token: {credentials.credentials}")
+    if not token:
+        logger.error("No token provided in request")
+        raise HTTPException(status_code=403, detail="No token provided")
 
     try:
-        # Verify token and get user
         user_response = await supabase.auth.get_user(token)
+        if not user_response.user:
+            logger.error("Supabase returned no user for this token")
+            raise HTTPException(status_code=403, detail="Invalid token")
+        logger.info(f"Authenticated user id: {user_response.user.id}")
         return user_response.user
-
-
     except Exception as e:
-
-        logger.exception("Auth failed")
+        logger.exception(f"Supabase authentication failed: {str(e)}")
         raise HTTPException(status_code=403, detail="Authentication failed")
