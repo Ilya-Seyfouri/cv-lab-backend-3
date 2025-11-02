@@ -264,7 +264,7 @@ async def get_credits(current_user = Depends(get_current_user)):
 
     return {
         "remaining": user_data['credits_remaining'],
-        "is_paid": False
+        "is_subscribed": False
     }
 
 def sanitize_latex(latex_code: str) -> str:
@@ -425,7 +425,7 @@ Now analyze and output only truly missing skills as comma-separated list."""
 
 @app.post("/generate-cv")
 @limiter.limit("50/minute")
-async def generate_cv(data: dict, request: Request, current_user = Depends(get_current_user)):
+async def generate_cv(request: Request, data: dict, current_user = Depends(get_current_user)):
     """
     Generates a tailored CV with intelligent section reordering and terminology matching.
     Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
@@ -770,7 +770,7 @@ async def test_latex():
 
 @app.post("/generate-cover-letter")
 @limiter.limit("5/minute")
-async def generate_cover_letter(data: dict, request: Request, current_user = Depends(get_current_user)):
+async def generate_cover_letter(request: Request, data: dict, current_user = Depends(get_current_user)):
     """
     Generates a tailored cover letter following strict requirements.
     Implements: RAG, Constraint Enforcement, Few-Shot Learning patterns.
