@@ -769,7 +769,7 @@ async def test_latex():
     }
 
 @app.post("/generate-cover-letter")
-@limiter.limit("50/minute")
+@limiter.limit("5/minute")
 async def generate_cover_letter(data: dict, request: Request, current_user = Depends(get_current_user)):
     """
     Generates a tailored cover letter following strict requirements.

@@ -6,3 +6,5 @@ python-dotenv==1.0.1
 PyPDF2==3.0.1
 fpdf==1.7.2
 pydantic==2.10.3
+slowapi==0.1.9
+supabase==2.9.0
