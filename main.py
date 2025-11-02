@@ -4,19 +4,25 @@ from pydantic import BaseModel
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Request
 import PyPDF2
 import io
 import re
 import subprocess
 import tempfile
-import shutil
 from pathlib import Path
 from fpdf import FPDF
 import base64
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
+
+from auth import get_current_user
+from credits import check_and_use_credit, get_user_credits
 
 load_dotenv()
+
 
 LATEX_CV_TEMPLATE = r"""
 \documentclass[letterpaper,11pt]{article}
@@ -210,8 +216,12 @@ LATEX_CV_TEMPLATE = r"""
 \end{document}
 
 """
+limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(title="CV Editor API")
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 
 
@@ -239,6 +249,23 @@ client = OpenAI(api_key=api_key)
 class JobDescriptionRequest(BaseModel):
     job_description: str
     user_cv: str = ""
+
+
+
+@app.get("/credits")
+async def get_credits(current_user = Depends(get_current_user)):
+    user_data = await get_user_credits(current_user.id)
+
+    if user_data['is_subscribed']:
+        return {
+            "remaining": "unlimited",
+            "is_subscribed": True
+        }
+
+    return {
+        "remaining": user_data['credits_remaining'],
+        "is_paid": False
+    }
 
 def sanitize_latex(latex_code: str) -> str:
     """
@@ -397,13 +424,17 @@ Now analyze and output only truly missing skills as comma-separated list."""
 
 
 @app.post("/generate-cv")
-async def generate_cv(request: dict):
+@limiter.limit("50/minute")
+async def generate_cv(data: dict, request: Request, current_user = Depends(get_current_user)):
     """
     Generates a tailored CV with intelligent section reordering and terminology matching.
     Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
     """
-    job_description = request.get("job_description", "")
-    user_cv = request.get("user_cv", "")
+
+    await check_and_use_credit(current_user.id)
+
+    job_description = data.get("job_description", "")
+    user_cv = data.get("user_cv", "")
 
     if not job_description:
         raise HTTPException(status_code=400, detail="Job description is required")
@@ -738,13 +769,17 @@ async def test_latex():
     }
 
 @app.post("/generate-cover-letter")
-async def generate_cover_letter(request: dict):
+@limiter.limit("50/minute")
+async def generate_cover_letter(data: dict, request: Request, current_user = Depends(get_current_user)):
     """
     Generates a tailored cover letter following strict requirements.
     Implements: RAG, Constraint Enforcement, Few-Shot Learning patterns.
     """
-    job_description = request.get("job_description", "")
-    user_cv = request.get("user_cv", "")
+
+    await check_and_use_credit(current_user.id)
+
+    job_description = data.get("job_description", "")
+    user_cv = data.get("user_cv", "")
 
     if not job_description:
         return {"error": "Job description is required"}
