@@ -23,7 +23,10 @@ async def get_current_user(request: Request,
 
     logger.debug("get_current_user called")
     logger.debug(f"Headers: {request.headers}")
+    logger.debug(f"Auth credentials: {credentials}")
     token = credentials.credentials
+
+    logger.debug(f"Token: {credentials.credentials}")
 
     try:
         # Verify token and get user
@@ -33,6 +36,5 @@ async def get_current_user(request: Request,
 
     except Exception as e:
 
-        logger.error(f"AUTH FAILED: {type(e).__name__}: {str(e)}")
-
-        raise HTTPException(status_code=401, detail=str(e))
+        logger.exception("Auth failed")
+        raise HTTPException(status_code=403, detail="Authentication failed")
