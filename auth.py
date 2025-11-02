@@ -4,12 +4,8 @@ from database import supabase
 import logging, sys
 
 
-
-logging.basicConfig(
-    level=logging.DEBUG,   # switch to INFO if DEBUG too noisy
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 
@@ -17,32 +13,26 @@ logging.basicConfig(
 security = HTTPBearer()
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    request: Request = None
+async def get_current_user(request: Request,
+        credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-    logger = logging.getLogger("auth")
-    # log raw headers (careful not to leak tokens in public logs)
-    auth_header = None
+    """
+    Extract user from JWT token in Authorization header.
+    Returns user dict with id, email, etc.
+    """
+
+    logger.debug("get_current_user called")
+    logger.debug(f"Headers: {request.headers}")
+    token = credentials.credentials
+
     try:
-        auth_header = request.headers.get("authorization")
-    except Exception:
-        print("hi")
-
-    logger.debug("get_current_user called; Authorization header present=%s", bool(auth_header))
-
-    try:
-        token = credentials.credentials
-        logger.debug("Token length: %d", len(token) if token else 0)
-
+        # Verify token and get user
         user_response = await supabase.auth.get_user(token)
-        logger.debug("supabase.get_user response: %r", getattr(user_response, "__dict__", str(user_response)))
-        # adapt depending on response shape:
-        user = getattr(user_response, "user", user_response)
-        logger.info("Authenticated user id=%s", getattr(user, "id", None))
-        return user
+        return user_response.user
+
 
     except Exception as e:
-        logger.exception("AUTH FAILED")
-        # hide sensitive internal message from client; return generic
-        raise HTTPException(status_code=401, detail="Not authenticated")
+
+        logger.error(f"AUTH FAILED: {type(e).__name__}: {str(e)}")
+
+        raise HTTPException(status_code=401, detail=str(e))

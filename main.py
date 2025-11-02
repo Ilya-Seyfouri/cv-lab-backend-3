@@ -28,13 +28,9 @@ from credits import check_and_use_credit, get_user_credits
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
 
-logging.basicConfig(
-    level=logging.DEBUG,   # switch to INFO if DEBUG too noisy
-    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 
@@ -791,10 +787,8 @@ async def generate_cover_letter(request: Request, data: dict, current_user = Dep
     """
 
     try:
-
-
-
-        logger.info(f"User {current_user.id} requesting cover letter")
+        logger.debug("Reached /generate-cv endpoint")
+        logger.debug(f"current_user: {current_user}")
 
         await check_and_use_credit(current_user.id)
 
@@ -946,7 +940,7 @@ async def generate_cover_letter(request: Request, data: dict, current_user = Dep
         return {"cover_letter": cover_letter}
 
     except Exception as e:
-        logger.error(f"ERROR: {type(e).__name__}: {str(e)}")
+        logger.exception("Error in /generate-cv")
         raise
 
 
