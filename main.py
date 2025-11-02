@@ -16,7 +16,9 @@ import base64
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-import logging
+import logging, sys
+import shutil
+
 
 
 
@@ -27,6 +29,13 @@ from credits import check_and_use_credit, get_user_credits
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+
+logging.basicConfig(
+    level=logging.DEBUG,   # switch to INFO if DEBUG too noisy
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
 
 
 
@@ -751,7 +760,6 @@ async def compile_latex(request: dict):
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-import shutil
 
 
 @app.get("/test-latex")
