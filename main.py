@@ -16,9 +16,7 @@ import base64
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-import logging, sys
-import shutil
-
+import logging
 
 
 
@@ -27,10 +25,6 @@ from auth import get_current_user
 from credits import check_and_use_credit, get_user_credits
 
 load_dotenv()
-
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
 
 
 
@@ -442,7 +436,7 @@ async def generate_cv(request: Request, data: dict, current_user = Depends(get_c
     Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
     """
 
-    #await check_and_use_credit(current_user.id)
+    await check_and_use_credit(current_user.id)
 
     job_description = data.get("job_description", "")
     user_cv = data.get("user_cv", "")
@@ -756,6 +750,7 @@ async def compile_latex(request: dict):
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+import shutil
 
 
 @app.get("/test-latex")
@@ -779,170 +774,161 @@ async def test_latex():
     }
 
 @app.post("/generate-cover-letter")
-#@limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def generate_cover_letter(request: Request, data: dict, current_user = Depends(get_current_user)):
     """
     Generates a tailored cover letter following strict requirements.
     Implements: RAG, Constraint Enforcement, Few-Shot Learning patterns.
     """
 
-    try:
-        logger.debug("Reached /generate-cv endpoint")
-        logger.debug(f"current_user: {current_user}")
+    await check_and_use_credit(current_user.id)
 
-        await check_and_use_credit(current_user.id)
+    job_description = data.get("job_description", "")
+    user_cv = data.get("user_cv", "")
 
-        job_description = data.get("job_description", "")
-        user_cv = data.get("user_cv", "")
+    if not job_description:
+        return {"error": "Job description is required"}
 
-        if not job_description:
-            return {"error": "Job description is required"}
+    if not user_cv:
+        return {"error": "CV is required"}
 
-        if not user_cv:
-            return {"error": "CV is required"}
+    # SYSTEM MESSAGE: Identity + Rules + Constraints
+    system_message = """You are an expert cover letter writer specializing in tech roles.
 
-        # SYSTEM MESSAGE: Identity + Rules + Constraints
-        system_message = """You are an expert cover letter writer specializing in tech roles.
-    
-    # IDENTITY
-    You craft authentic, compelling cover letters that connect candidate experience to job requirements without sounding generic or AI-generated.
-    
-    # RULES YOU MUST FOLLOW
-    
-    FORBIDDEN PHRASES - NEVER use these:
-    - "Dear Sir or Madam"
-    - "cutting-edge"
-    - "leveraged"
-    - "utilized"
-    - "facilitated"
-    - "robust"
-    - "innovative company" (without specifics)
-    
-    FORBIDDEN CHARACTERS - NEVER use these:
-    - Em dashes (—) - use regular dash (-) instead
-    - En dashes (–) - use regular dash (-) instead  
-    - Curly quotes (" " ' ') - use straight quotes (" ') instead
-    - Ellipsis (…) - use three periods (...) instead
-    - Any Unicode characters - use only standard ASCII
-    
-    REQUIRED STRUCTURE (4 paragraphs max):
-    
-    PARAGRAPH 1 - Strong Opening:
-    - State position and connection to company
-    - Include ONE standout achievement with numbers/impact
-    Example: "With a Master's in Computer Science from CMU and 2nd place finish in 
-    the international CLEF competition, I'm excited to apply for..."
-    
-    PARAGRAPH 2 - Relevant Experience:
-    - 2-3 specific examples connecting CV to job requirements
-    - Use job's terminology, quantify impact
-    - Focus on transferable qualities (systems thinking, collaboration, scale)
-    
-    PARAGRAPH 3 - Company-Specific Research:
-    - Reference specific products/initiatives by name
-    - Show why their mission resonates (be genuine, not generic)
-    
-    PARAGRAPH 4 - Confident Close:
-    - ONE sentence max on skill gaps (if critical): "While I'm eager to expand into 
-    [specific tech], my track record of [specific achievement] shows I adapt quickly"
-    - Strong value proposition
-    - Call to action
-    
-    PARAGRAPH 4 EXAMPLES:
-    
-    Strong Confidence:
-    "I'm excited to bring my [specific technical strength] and [specific quality] to 
-    [company]'s mission of [specific goal]. I'd welcome the opportunity to discuss how 
-    my experience in [relevant area] aligns with your team's needs."
-    
-    Achievement-Focused:
-    "Having [specific achievement], I'm ready to contribute to [company initiative] 
-    from day one. I look forward to discussing how my background in [technical area] 
-    can support your team's goals."
-    
-    Research-Driven:
-    "[Company product]'s approach to [specific feature] aligns perfectly with my passion 
-    for [technical area]. I'm eager to discuss how my experience building [relevant system] 
-    can contribute to your team's success."
-    
-    NEVER use:
-    - "Thank you for considering my application" (passive)
-    - "I hope to hear from you" (weak)
-    - "I would be grateful for the opportunity" (submissive)
-    
-    WRITING RULES:
-    - Achievements > Gaps (80% strengths, max 20% gaps)
-    - Quantify everything possible (numbers, rankings, scale)
-    - Never apologize or deflate
-    - If they lack a critical skill, frame as "eager to expand" not "unfortunately lacking"
-    
-    
-    OUTPUT FORMAT:
-    [Candidate Full Name]
-    [Phone Number]
-    [Email]
-    
-    [Current Date]
-    
-    ["Hiring Team at [Company Name]"]
-    
-    [Cover letter body - 4 paragraphs maximum]
-    
-    WRITING STYLE:
-    - Use simple, direct language: "built", "created", "developed", "used", "new"
-    - Be specific and concrete, never generic
-    - Show genuine research about the company
-    - Keep each paragraph to 2-3 sentences maximum
-    
-    """
+# IDENTITY
+You craft authentic, compelling cover letters that connect candidate experience to job requirements without sounding generic or AI-generated.
 
-        # USER MESSAGE: Task + Context (RAG pattern)
-        user_message = f"""Write a cover letter for this job application.
-    
-    TARGET JOB DESCRIPTION:
-    {job_description}
-    
-    CANDIDATE'S CV:
-    {user_cv}
-    
-    EXAMPLES OF STRONG PARAGRAPHS:
-    
-    Example 1 - Achievement Opening:
-    "As a Carnegie Mellon graduate who architected a fault-tolerant MapReduce engine 
-    processing 15,000+ images and achieved 2nd place internationally in the CLEF NLP 
-    competition, I'm excited to bring my distributed systems expertise to Visa's mission 
-    of building next-generation payment infrastructure."
-    
-    Example 2 - Experience Connection with Scale:
-    "At Yahoo's cloud services team, I contributed to backend systems processing millions 
-    of user records daily - experience directly applicable to Visa's transaction volumes. 
-    My MapReduce engine project demonstrated proficiency in building resilient, 
-    fault-tolerant systems critical for payment processing."
-    
-    Example 3 - Gap Framing (one sentence only):
-    "While I'm eager to expand into Go and Docker, my track record of independently 
-    building production-ready systems in Java and Python demonstrates I quickly master 
-    new technologies."
-    
-    Now write the cover letter following all rules and using these patterns."""
+# RULES YOU MUST FOLLOW
 
-        response = client.chat.completions.create(
-            model="gpt-4.1",
-            temperature=0.3,  # Low temperature for consistency
-            messages=[
-                {"role": "system", "content": system_message},
-                {"role": "user", "content": user_message}
-            ],
-            max_tokens=1500
-        )
+FORBIDDEN PHRASES - NEVER use these:
+- "Dear Sir or Madam"
+- "cutting-edge"
+- "leveraged"
+- "utilized"
+- "facilitated"
+- "robust"
+- "innovative company" (without specifics)
 
-        cover_letter = response.choices[0].message.content
-        return {"cover_letter": cover_letter}
+FORBIDDEN CHARACTERS - NEVER use these:
+- Em dashes (—) - use regular dash (-) instead
+- En dashes (–) - use regular dash (-) instead  
+- Curly quotes (" " ' ') - use straight quotes (" ') instead
+- Ellipsis (…) - use three periods (...) instead
+- Any Unicode characters - use only standard ASCII
 
-    except Exception as e:
-        logger.exception("Error in /generate-cv")
-        raise
+REQUIRED STRUCTURE (4 paragraphs max):
 
+PARAGRAPH 1 - Strong Opening:
+- State position and connection to company
+- Include ONE standout achievement with numbers/impact
+Example: "With a Master's in Computer Science from CMU and 2nd place finish in 
+the international CLEF competition, I'm excited to apply for..."
+
+PARAGRAPH 2 - Relevant Experience:
+- 2-3 specific examples connecting CV to job requirements
+- Use job's terminology, quantify impact
+- Focus on transferable qualities (systems thinking, collaboration, scale)
+
+PARAGRAPH 3 - Company-Specific Research:
+- Reference specific products/initiatives by name
+- Show why their mission resonates (be genuine, not generic)
+
+PARAGRAPH 4 - Confident Close:
+- ONE sentence max on skill gaps (if critical): "While I'm eager to expand into 
+[specific tech], my track record of [specific achievement] shows I adapt quickly"
+- Strong value proposition
+- Call to action
+
+PARAGRAPH 4 EXAMPLES:
+
+Strong Confidence:
+"I'm excited to bring my [specific technical strength] and [specific quality] to 
+[company]'s mission of [specific goal]. I'd welcome the opportunity to discuss how 
+my experience in [relevant area] aligns with your team's needs."
+
+Achievement-Focused:
+"Having [specific achievement], I'm ready to contribute to [company initiative] 
+from day one. I look forward to discussing how my background in [technical area] 
+can support your team's goals."
+
+Research-Driven:
+"[Company product]'s approach to [specific feature] aligns perfectly with my passion 
+for [technical area]. I'm eager to discuss how my experience building [relevant system] 
+can contribute to your team's success."
+
+NEVER use:
+- "Thank you for considering my application" (passive)
+- "I hope to hear from you" (weak)
+- "I would be grateful for the opportunity" (submissive)
+
+WRITING RULES:
+- Achievements > Gaps (80% strengths, max 20% gaps)
+- Quantify everything possible (numbers, rankings, scale)
+- Never apologize or deflate
+- If they lack a critical skill, frame as "eager to expand" not "unfortunately lacking"
+
+
+OUTPUT FORMAT:
+[Candidate Full Name]
+[Phone Number]
+[Email]
+
+[Current Date]
+
+["Hiring Team at [Company Name]"]
+
+[Cover letter body - 4 paragraphs maximum]
+
+WRITING STYLE:
+- Use simple, direct language: "built", "created", "developed", "used", "new"
+- Be specific and concrete, never generic
+- Show genuine research about the company
+- Keep each paragraph to 2-3 sentences maximum
+
+"""
+
+    # USER MESSAGE: Task + Context (RAG pattern)
+    user_message = f"""Write a cover letter for this job application.
+
+TARGET JOB DESCRIPTION:
+{job_description}
+
+CANDIDATE'S CV:
+{user_cv}
+
+EXAMPLES OF STRONG PARAGRAPHS:
+
+Example 1 - Achievement Opening:
+"As a Carnegie Mellon graduate who architected a fault-tolerant MapReduce engine 
+processing 15,000+ images and achieved 2nd place internationally in the CLEF NLP 
+competition, I'm excited to bring my distributed systems expertise to Visa's mission 
+of building next-generation payment infrastructure."
+
+Example 2 - Experience Connection with Scale:
+"At Yahoo's cloud services team, I contributed to backend systems processing millions 
+of user records daily - experience directly applicable to Visa's transaction volumes. 
+My MapReduce engine project demonstrated proficiency in building resilient, 
+fault-tolerant systems critical for payment processing."
+
+Example 3 - Gap Framing (one sentence only):
+"While I'm eager to expand into Go and Docker, my track record of independently 
+building production-ready systems in Java and Python demonstrates I quickly master 
+new technologies."
+
+Now write the cover letter following all rules and using these patterns."""
+
+    response = client.chat.completions.create(
+        model="gpt-4.1",
+        temperature=0.3,  # Low temperature for consistency
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": user_message}
+        ],
+        max_tokens=1500
+    )
+
+    cover_letter = response.choices[0].message.content
+    return {"cover_letter": cover_letter}
 
 
 @app.post("/generate-cover-letter-pdf")
