@@ -16,8 +16,6 @@ import base64
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-import logging
-
 
 
 
@@ -25,8 +23,6 @@ from auth import get_current_user
 from credits import check_and_use_credit, get_user_credits
 
 load_dotenv()
-
-
 
 
 LATEX_CV_TEMPLATE = r"""
@@ -429,15 +425,27 @@ Now analyze and output only truly missing skills as comma-separated list."""
 
 
 @app.post("/generate-cv")
-@limiter.limit("50/minute")
+@limiter.limit("25/minute")
 async def generate_cv(request: Request, data: dict, current_user = Depends(get_current_user)):
     """
     Generates a tailored CV with intelligent section reordering and terminology matching.
     Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
     """
 
-    await check_and_use_credit(current_user.id)
+    # ✅ ADD LOGGING HERE
+    print("=== GENERATE CV ENDPOINT HIT ===")
+    print(f"User ID: {current_user.id}")
+    print(f"User Email: {current_user.email}")
 
+    try:
+        # Log before credit check
+        print("Checking credits...")
+        await check_and_use_credit(current_user.id)
+        print("✅ Credits check passed!")
+
+    except HTTPException as e:
+        print(f"❌ Credits check FAILED: {e.detail}")
+        raise
     job_description = data.get("job_description", "")
     user_cv = data.get("user_cv", "")
 
@@ -774,7 +782,7 @@ async def test_latex():
     }
 
 @app.post("/generate-cover-letter")
-@limiter.limit("5/minute")
+@limiter.limit("20/minute")
 async def generate_cover_letter(request: Request, data: dict, current_user = Depends(get_current_user)):
     """
     Generates a tailored cover letter following strict requirements.
