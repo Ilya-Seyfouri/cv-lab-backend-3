@@ -1,5 +1,4 @@
 from fastapi.middleware.cors import CORSMiddleware
-from langchain_core.utils.json import parse_partial_json
 from pydantic import BaseModel
 from openai import OpenAI
 import os
@@ -16,11 +15,9 @@ import base64
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-import json
 from auth import get_current_user
 from credits import check_and_use_credit, get_user_credits
 from datetime import datetime
-from typing import Dict, List, Any
 
 
 import logging
