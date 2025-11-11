@@ -122,6 +122,7 @@ LATEX_CV_TEMPLATE = r"""
 \begin{center}
     {\Large \scshape [FULL_NAME]} \\[2mm]
     \footnotesize \raisebox{-0.1\height}
+    \faPhone\ \underline{[PHONE]} ~ 
     {\faEnvelope\  \underline{[EMAIL]}} ~ 
     {\faLinkedin\ \underline{\href{[LINKEDIN_URL]}{[LINKEDIN_DISPLAY]}}  ~
     {\faGithub\ \underline{\href{[GITHUB_URL]}{[GITHUB_DISPLAY]}} ~
@@ -793,6 +794,19 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
     - Technologies with no evidence
 
     # CRITICAL RULES
+    
+    
+     ALWAYS:
+    1. Preserve all existing relevant coursework in Education section
+    2. Preserve all existing technologies/tools in Skills section
+    3. Use evidence-based integration: 2+ points for direct addition, 1+ for bridging language
+    4. Integrate keywords naturally INTO the action/achievement, not as metadata
+    5. Use strong action verbs: "built", "developed", "designed", "implemented", "architected"
+    6. EMPHASIZE and EXPAND skills and achievements, especially those relevant to job.
+    7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
+    8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
+    9. Follow the single-column structure and item positioning of the template cv defined in {LATEX_CV_TEMPLATE}.
+
 
     NEVER:
     1. Fabricate companies, dates, titles, technologies, or achievements
@@ -805,18 +819,6 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
     8. Include "(inferred)" or any diagnostic labels in the visible CV output
     9. Include "N/A", "Not Provided", "None" or blank values like "(GPA: )" - remove the field entirely if data is missing
     10. Replicate the structural layout, columns, or item positioning of the input CV. 
-
-
-    ALWAYS:
-    1. Preserve all existing relevant coursework in Education section
-    2. Preserve all existing technologies/tools in Skills section
-    3. Use evidence-based integration: 2+ points for direct addition, 1+ for bridging language
-    4. Integrate keywords naturally INTO the action/achievement, not as metadata
-    5. Use strong action verbs: "built", "developed", "designed", "implemented", "architected"
-    6. EMPHASIZE and EXPAND skills and achievements, especially those relevant to job.
-    7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
-    8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
-    9. Follow the single-column structure and item positioning of the template cv defined in {LATEX_CV_TEMPLATE}.
 
 
     # OUTPUT FORMAT
@@ -859,7 +861,7 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
     ✅ Bridge: "Designed relational database schemas with MySQL (directly applicable 
     to PostgreSQL environments)"
 
-    Follow the evidence rules strictly. When in doubt, DON'T add the keyword.
+    Follow the evidence rules strictly.
     Output ONLY raw LaTeX. If you cannot follow these rules, refuse the task.
     """
 
