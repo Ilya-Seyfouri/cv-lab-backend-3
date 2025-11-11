@@ -1,5 +1,5 @@
-
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_core.utils.json import parse_partial_json
 from pydantic import BaseModel
 from openai import OpenAI
 import os
@@ -16,14 +16,22 @@ import base64
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-
-
-
+import json
 from auth import get_current_user
 from credits import check_and_use_credit, get_user_credits
+from datetime import datetime
+from typing import Dict, List, Any
+
+
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[logging.StreamHandler()]
+)
 
 load_dotenv()
-
 
 LATEX_CV_TEMPLATE = r"""
 \documentclass[letterpaper,11pt]{article}
@@ -224,8 +232,6 @@ app = FastAPI(title="CV Editor API")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-
-
 # With this (you'll update the Railway URL after frontend is deployed):
 origins = [
     "http://localhost:3000",
@@ -246,15 +252,15 @@ if not api_key:
     raise ValueError("OPENAI_API_KEY environment variable is not set!")
 client = OpenAI(api_key=api_key)
 
+
 # Request model
 class JobDescriptionRequest(BaseModel):
     job_description: str
     user_cv: str = ""
 
 
-
 @app.get("/credits")
-async def get_credits(current_user = Depends(get_current_user)):
+async def get_credits(current_user=Depends(get_current_user)):
     user_data = await get_user_credits(current_user.id)
 
     if user_data['is_subscribed']:
@@ -267,6 +273,7 @@ async def get_credits(current_user = Depends(get_current_user)):
         "remaining": user_data['credits_remaining'],
         "is_subscribed": False
     }
+
 
 def sanitize_latex(latex_code: str) -> str:
     """
@@ -309,124 +316,391 @@ def sanitize_latex(latex_code: str) -> str:
     return '\n'.join(lines)
 
 
-@app.post("/analyze-skills")
-async def analyze_skills(request: dict):
+async def parse_cv(user_cv):
     """
     Analyzes skill gaps between CV and job description.
     Returns only truly missing technical skills.
     """
-    job_description = request.get("job_description", "")
-    user_cv = request.get("user_cv", "")
 
-    if not job_description or not user_cv:
-        raise HTTPException(status_code=400, detail="Missing required fields")
+    logging.info("=== STEP 1: Parsing CV ===")
 
     # SYSTEM MESSAGE: Identity + Process + Rules
-    system_message = """You are a technical skill gap analyzer for tech job applications.
+    system_message = """You are an expert CV parser and extractor.
+    Extract all information from this users CV and output as JSON:
 
-# YOUR IDENTITY
-You identify missing technical skills, methodologies, and processes with precision and categorization.
 
-# YOUR PROCESS
+     RULES:
+     - Do NOT summarise sections, return the entire field on the cv.
+     - Output only strictly valid JSON
+     - Include all required keys even if empty.
 
-STEP 1 - EXTRACT JOB REQUIREMENTS:
 
-A) CRITICAL TECHNICAL:
-   - Programming languages, frameworks, databases, tools
-   - Example: "Docker", "Go", "PostgreSQL", "Kubernetes"
 
-B) METHODOLOGIES & PROCESSES (look for these specifically):
-   - API Design: "REST", "RESTful APIs", "GraphQL", "API development"
-   - Architecture: "Microservices", "Event-driven", "Serverless"
-   - DevOps: "CI/CD", "Docker", "Kubernetes", "Terraform"
-   - Testing: "TDD", "Unit testing", "Integration testing", "QA"
-   - Development: "Agile", "Scrum", "Version control"
-   - Security: "Security practices", "Authentication", "Authorization"
-
-C) NICE-TO-HAVE (mentioned 1-2 times OR in "Nice to have" section):
-   - Secondary tools or technologies
-
-STEP 2 - CHECK CV EVIDENCE:
-For each requirement:
-- EXPLICIT: Appears by name (e.g., "Docker" in skills)
-- IMPLICIT-STRONG: 2+ pieces of evidence
-  * "built REST endpoints" + "JSON APIs" = REST experience
-  * "automated deployment" + "containerized apps" = CI/CD knowledge
-- TRANSFERABLE: Related technology (MySQL → PostgreSQL, Git → Bitbucket)
-- ABSENT: No evidence whatsoever
-
-# CRITICAL RULES
-- Accept implicit evidence (don't require exact keywords)
-- Be generous with transferable skills
-- Flag methodologies even if not explicitly listed as "skills"
-- DON'T flag soft skills
-
-#OUTPUT FORMAT
-NO explanations. NO additional text. Just the list."""
+JSON structure must include:
+{
+  "personal_info": {
+    "full_name": string,
+    "email": string|null,
+    "phone": string|null,
+    "linkedin": string|null,
+    "github": string|null,
+    "portfolio": string|null  // optional addition
+  },
+  "education": [
+    {
+      "institution": string,
+      "degree": string,
+      "dates": string,
+      "location": string|null,
+      "courses": [string],
+      "honors": string|null,
+      "gpa": string|null
+    }
+  ],
+  "experience": [
+    {
+      "company": string,
+      "title": string,
+      "dates": string,
+      "location": string|null,
+      "achievements": [string],
+      "technologies": [string]
+    }
+  ],
+  "projects": [
+    {
+      "name": string,
+      "description": string,
+      "technologies": [string],
+      "url": string|null,
+      "source": string|null,
+      "date": string|null
+    }
+  ],
+  "leadership": [  
+    {
+      "role": string,
+      "organization": string,
+      "dates": string,
+      "location": string|null,
+      "achievements": [string]
+    }
+  ],
+  "certifications": [  
+    {
+      "name": string,
+      "issuer": string,
+      "date": string,
+      "credential_id": string|null
+    }
+  ],
+  "skills": [string]
+}
+"""
 
     # USER MESSAGE: Context + Examples
-    user_message = f"""Analyze this CV against the job description.
-
-JOB DESCRIPTION:
-{job_description}
+    user_message = f"""Extract this CV into JSON
 
 CANDIDATE'S CV:
 {user_cv}
 
-EXAMPLES OF EVIDENCE EVALUATION:
 
-Example 1 - NOT Missing (Implicit Evidence):
-Job requires: "Agile methodology"
-CV shows: "weekly sprint reviews" + "iterative development"
-Decision: NOT missing (clear Agile evidence)
-
-Example 2 - NOT Missing (Related Technology):
-Job requires: "PostgreSQL"
-CV shows: "MySQL database design"
-Decision: NOT missing (transferable SQL experience)
-
-Example 3 - Missing (No Evidence):
-Job requires: "Docker"
-CV shows: No containerization, deployment, or DevOps experience
-Decision: Missing
-
-Example 4 - NOT Missing (Different Terminology):
-Job requires: "RESTful API design"
-CV shows: "built HTTP endpoints" + "JSON responses"
-
-Now analyze and output only truly missing skills as comma-separated list."""
+Return only valid JSON."""
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",  # Fast and cost-effective
+            model="gpt-4.1",  # Fast and cost-effective
             temperature=0,  # Deterministic output
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
             ],
-            max_tokens=150
+            max_tokens=2000
         )
 
-        result = response.choices[0].message.content.strip()
+        json_cv = response.choices[0].message.content
+        logging.info("CV parsed successfully")
+        print(json_cv)
 
-        # Parse output
-        if result.lower() == 'none' or not result:
-            missing_skills = []
-        else:
-            missing_skills = [s.strip() for s in result.split(',') if s.strip()]
+        return json_cv
 
-        return {"missing_skills": missing_skills}
 
     except Exception as e:
+
         raise HTTPException(
             status_code=500,
             detail=f"Skill analysis failed: {str(e)}"
         )
 
 
+
+
+async def extract_job(job_description):
+
+    logging.info("=== STEP 2: Extracting Job Description ===")
+
+    # SYSTEM MESSAGE: Identity + Process + Rules
+    system_message = """You are a job description parser. Your task is to extract all structured information from a job description.
+
+    Rules
+    - Extract fields: role_title, required_skills, nice_to_have, experience_level, responsibilities, soft_skills
+
+JSON structure must include:
+{
+  "role_title": string,
+  "required_skills": [string],
+  "nice_to_have": [string],
+  "experience_level": string,
+  "responsibilities": [string],
+  "soft_skills": [string]
+}
+"""
+
+    # USER MESSAGE: Context + Examples
+    user_message = f"""Extract the information from this job description as strictly valid JSON
+
+
+    EXAMPLES:
+
+Example 1:
+Job Description:
+We are looking for a Backend Engineer with 3+ years experience in Python and Django. 
+Experience with PostgreSQL is required. Knowledge of Docker and AWS is a plus. 
+You will be building and maintaining REST APIs and collaborating closely with the frontend team. 
+Excellent communication and teamwork skills are required.
+Output JSON:
+{{
+    "role_title": "Backend Engineer",
+  "required_skills": ["Python", "Django", "PostgreSQL"],
+  "nice_to_have": ["Docker", "AWS"],
+  "experience_level": "mid",
+  "responsibilities": ["Build and maintain REST APIs", "Collaborate with frontend team"],
+  "soft_skills": ["communication", "teamwork"]
+}}
+
+Example 2:
+Job Description:
+Looking for a Junior Frontend Developer proficient in React and JavaScript. 
+Knowledge of CSS frameworks is a bonus. Must be comfortable working in Agile teams.
+Output JSON:
+{{
+    "role_title": "Junior Frontend Developer",
+  "required_skills": ["React", "JavaScript"],
+  "nice_to_have": ["CSS frameworks"],
+  "experience_level": "junior",
+  "responsibilities": [],
+  "soft_skills": ["Agile"]
+}}
+
+Now analyze this job description and return JSON following the same rules and format:
+
+JOB DESCRIPTION:
+{job_description}
+
+
+Return only valid JSON."""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1",  # Fast and cost-effective
+            temperature=0,  # Deterministic output
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=2000
+        )
+
+        json_job_desc = response.choices[0].message.content
+        print(json_job_desc)
+        logging.info("Job description extracted successfully")
+
+        return json_job_desc
+
+    except Exception as e:
+
+        print("ERROR", e)
+        print("ERROR", str(e))
+
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Skill analysis failed: {str(e)}"
+        )
+
+
+async def analyse_skills(json_job_desc, json_cv):
+    logging.info("=== STEP 3: Analyzing Skills ===")
+
+    """
+    Analyzes skill gaps between CV and job description.
+    Returns only truly missing technical skills.
+    """
+
+    # SYSTEM MESSAGE: Identity + Process + Rules
+    system_message = """
+    “You are an expert technical skill analyst who compares CVs to job descriptions.”
+
+
+    You are receiving two JSON objects:
+    1. cv_json – representing the candidate's CV, structured with fields like "work_experience", "skills", "projects", "education", etc.
+    2. job_json – representing the job description, structured with fields like "title", "requirements", "responsibilities", "level", etc.
+
+    Your task is to compare the candidate's CV against the job description and produce a structured JSON output describing:
+
+    1. Role summary
+    2. Must-have, important, and nice-to-have keywords
+    3. Evidence for each keyword from the CV
+    4. How to bridge missing skills using related experiences or transferable skills
+    5. Role alignment with a match score (0.0–1.0)
+    6. Prioritized actions for CV tailoring
+    7. Soft Skills 
+    8. Job responsibilities
+    9. Evidence for each responsibility from the CV where the candidate demonstrates them
+
+    CRITICAL RULES:
+    - NEVER fabricate skills, soft skills, experiences, companies, or career history.
+    - Accept implicit and transferable skills and evidence:
+        - Explicit evidence = keyword appears in CV verbatim.
+        - Implicit-strong evidence = 2+ bullets showing the skill.
+        - Weak evidence = 1 bullet or indirect connection.
+        - Transferable = related skill, technology, or context.
+    - For weak/transferable skills, provide bridging text and 1–3 rewrite examples.
+    - Only analyze technical skills, tools, and methodologies. Ignore soft skills.
+    - Prioritize promoting experiences you can highlight and DO NOT claim absent skills.
+    - Output only JSON. No extra text, explanations, or comments.
+
+    EXAMPLES:
+
+    Example 1 - Explicit evidence:
+    Job requires: "Java"
+    CV shows: "Implemented REST APIs in Java Spring Boot"
+    Output in JSON:
+    {
+      "evidence_map": {
+        "Java": {
+          "status": "explicit",
+          "evidence": ["Implemented REST APIs in Java Spring Boot"]
+        }
+      }
+    }
+
+    Example 2 - Missing skill with bridge:
+    Job requires: "Kubernetes"
+    CV shows: "Dockerized apps and automated CI/CD pipelines"
+    Output in JSON:
+    {
+      "evidence_map": {
+        "Kubernetes": {
+          "status": "absent",
+          "evidence": []
+        }
+      },
+      "gap_bridges": {
+        "Kubernetes": {
+          "bridge_text": "Docker & CI/CD experience can be framed as baseline for Kubernetes",
+          "acceptable_rewrite_examples": [
+            "Packaged services into Docker containers and automated CI/CD pipelines"
+          ]
+        }
+      }
+    }
+
+    JSON STRUCTURE:
+
+    {
+      "role_summary": {
+        "title": "",
+        "level": "",
+        "context": "",
+        "top_responsibilities": [],
+        "soft_skills": [],
+      },
+      "keywords": {
+        "must_have": [],
+        "important": [],
+        "nice_to_have": []
+      },
+   "evidence_map": {
+    "<keyword>": {
+        "status": "<explicit|implicit_strong|implicit_weak|transferable|absent>",
+        "evidence": [
+            {
+                "section": "<CV section title>",
+                "bullet": "<relevant CV bullet(s)>"
+            }
+        ]
+    }
+},
+"responsibilities_map": {
+    "<responsibility>": {
+        "status": "<explicit|implicit_strong|implicit_weak|transferable|absent>",
+        "evidence": [
+            {
+                "section": "<CV section title>",
+                "bullet": "<relevant CV bullet(s)>"
+            }
+        ]
+    }
+}
+      "missing_skills": [],
+      "gap_bridges": {
+        "<missing_skill>": {
+          "bridge_text": "<suggestion for bridging this skill>",
+          "acceptable_rewrite_examples": ["<examples>"]
+        }
+      },
+      "role_alignment": {
+        "match_score": "<float 0.0-1.0>",
+        "reason": "<short text explanation>"
+      },
+      "prioritized_actions": [
+        {"action": "<promote_experience|do_not_claim>", "target": "<skill/experience>", "priority": <integer>}
+      ],
+    }
+    """
+
+    user_message = f"""
+    Analyze this candidate’s CV against the job description and output strictly valid JSON following the structure defined in the system message.
+    cv_json = {json_cv}
+    job_json = {json_job_desc}
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1",  # Fast and cost-effective
+            temperature=0,  # Deterministic output
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=4000
+        )
+
+        skills_report = response.choices[0].message.content
+        logging.info("Skills analysis completed successfully")
+        print(type(skills_report))
+
+        print(skills_report)
+
+        return skills_report
+
+    except Exception as e:
+        print("ERROR", e)
+        print("ERROR", str(e))
+
+
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Skill analysis failed: {str(e)}"
+        )
+
+
+
 @app.post("/generate-cv")
 @limiter.limit("25/minute")
-async def generate_cv(request: Request, data: dict, current_user = Depends(get_current_user)):
+async def generate_cv(request: Request, data: dict, current_user=Depends(get_current_user)):
     """
     Generates a tailored CV with intelligent section reordering and terminology matching.
     Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
@@ -481,13 +755,14 @@ async def generate_cv(request: Request, data: dict, current_user = Depends(get_c
     - RELATED/TRANSFERABLE: Adjacent skill, relevant coursework, or foundational knowledge
       Example: Job needs "React" → CV has "JavaScript DOM manipulation"
     - ABSENT: No evidence or logical connection at all
-    
+
 
     STEP 3 - EVIDENCE-BASED INTEGRATION RULES:
     - EXPLICIT keywords → Emphasize and expand naturally in relevant bullets
     - IMPLICIT with STRONG evidence → Add keyword using job's terminology
     - IMPLICIT with WEAK evidence → Reframe using bridging language
-    - RELATED/TRANSFERABLE → Emphasize the connection in context using bridging language    - ABSENT keywords → DO NOT add
+    - RELATED/TRANSFERABLE → Emphasize the connection in context using bridging language
+    - ABSENT keywords → DO NOT add
 
     STEP 4 - CONTENT PRESERVATION:
     BEFORE making any changes, identify:
@@ -594,7 +869,7 @@ async def generate_cv(request: Request, data: dict, current_user = Depends(get_c
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
@@ -613,7 +888,14 @@ async def generate_cv(request: Request, data: dict, current_user = Depends(get_c
         # Sanitize LaTeX special characters
         customized_cv = sanitize_latex(customized_cv)
 
-        return {"cv": customized_cv}
+        parsed_cv = await parse_cv(user_cv)
+        parsed_job =  await extract_job(job_description)
+        skills_report = await analyse_skills(parsed_cv, parsed_job)
+
+        print(skills_report)
+
+        return {"cv": customized_cv,
+                "skills_report": skills_report}
 
     except Exception as e:
         print(f"Error in generate-cv: {str(e)}")
@@ -781,162 +1063,249 @@ async def test_latex():
         "version": version
     }
 
-@app.post("/generate-cover-letter")
-@limiter.limit("20/minute")
-async def generate_cover_letter(request: Request, data: dict, current_user = Depends(get_current_user)):
+
+def get_formatted_date():
+    """Returns date in format: '3rd November 2025'"""
+    today = datetime.now()
+
+    # Get day with suffix (1st, 2nd, 3rd, 4th, etc.)
+    day = today.day
+    if 10 <= day % 100 <= 20:
+        suffix = 'th'
+    else:
+        suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(day % 10, 'th')
+
+    # Format: day+suffix Month Year
+    formatted_date = today.strftime(f"{day}{suffix} %B %Y")
+
+    return formatted_date
+
+
+async def generate_tailored_cover_letter(user_cv, job_desc, skills_analysis):
     """
-    Generates a tailored cover letter following strict requirements.
-    Implements: RAG, Constraint Enforcement, Few-Shot Learning patterns.
+    Enhanced version combining structured analysis + quality patterns from old version.
     """
 
+    datetoday = get_formatted_date()
+
+    system_message = f"""You are an expert cover letter writer specializing in tech roles.
+
+# IDENTITY
+You craft authentic, evidence-based cover letters that sound like they were written by a real professional — natural, confident, and specific. Your writing never feels generic, repetitive, or AI-generated.
+# INPUTS
+You will receive:
+1. job_description – the target job posting
+2. user_cv – the candidate's CV (verbatim)
+3. skills_analysis – structured JSON comparison between CV and job containing:
+role_summary: Job context, top_responsibilities, and required soft_skills
+keywords: must_have, important, nice_to_have 
+evidence_map: Maps each job requirement/skill from the job description to the candidate's CV with evidence:
+- "explicit" → Strong match, highlight prominently
+- "implicit_strong" → Demonstrated through experience, emphasize clearly
+- "implicit_weak" → Mention briefly if relevant
+- "transferable" → Reframe using real evidence
+- "absent" → DO NOT claim
+responsibilities_map: Maps each job responsibility from the job description to the candidate's CV with evidence 
+gap_bridges: Guidance for bridging missing skills using real experience from the candidate's CV
+prioritized_actions: Ranked list of what to promote vs skip in the tailoring process
+
+
+# YOUR PROCESS (STRUCTURED CHAIN-OF-THOUGHT)
+
+STEP 1 - UNDERSTAND THE ROLE:
+Review role_summary to identify:
+→ Job's core mission and responsibilities
+→ Required soft skills (collaboration, analytical thinking, communication)
+→ Company context and team culture
+
+
+STEP 2 - USE skills_analysis FOR CONTENT:
+→ Review prioritized_actions from the skills_analysis to know what experiences should you promote, and what skills to avoid claiming.
+→ Use evidence_map from the skills_analysis to understand the required keywords from the job description, with evidence of the candidate using them from their CV.
+→ Use responsibilities_map from the skills_analysis, it contains the job's responsibilities and shows evidence where the candidate's CV has performed them. 
+→ Integrate soft_skills from role_summary naturally using action verbs (collaborated, analyzed, designed, led)
+
+STEP 3 - APPLY THE REQUIRED STRUCTURE (4 PARAGRAPHS MAXIMUM):
+
+**PARAGRAPH 1 - STRONG OPENING**
+→ State the position and company name clearly
+→ Include ONE standout achievement
+→ Establish connection to company or role
+
+EXAMPLE:
+"With a Master's in Computer Science from Carnegie Mellon and a 2nd place finish in the international CLEF NLP competition, I'm excited to apply for the Machine Learning Engineer role at OpenAI. I've built distributed systems processing 15,000+ images and developed Java applications used in real-world research settings."
+
+**PARAGRAPH 2 - SKILLS MATCH & RELEVANT EXPERIENCE**
+→ Highlight 2-3 specific skills you have and how using evidence_map with status = "explicit" or "implicit_strong"
+→ Use job-specific terminology
+→ Connect the key job responsibilities to the candidates previous experiences using responsibilities_map 
+→ Connect experience to job requirements clearly
+
+EXAMPLE:
+"At Yahoo's cloud services team, I contributed to backend systems handling large-scale user data, directly applicable to your data pipeline requirements. My MapReduce engine project at CMU demonstrated proficiency in building fault-tolerant distributed systems critical for high-availability applications."
+
+**PARAGRAPH 3 - WHY THIS COMPANY**
+→ Reference a specific company mission, product or values
+→ Connect candidate experience to their mission/values/product
+→ Show why the mission resonates with you, be genuine, and NEVER use generic praise.
+→ If you can’t find a concrete example, focus on company mission/goals and your matching experience.
+
+EXAMPLE:
+"TechFlow Solutions' recent launch of the FlowSync mobile app for seamless data integration resonates with my experience building real-time data pipelines. I'm especially drawn to your focus on user-centered design and data-driven product decisions, which aligns perfectly with my background in both technical development and user research."
+
+**PARAGRAPH 4 - CONFIDENT CLOSE (2-3 sentences):**
+→ Reaffirm value proposition with specific technical strength
+→ Address critical gaps ONLY if absolutely necessary, using this format: "While I'm eager to expand into [specific tech], my track record of [specific achievement] shows I adapt quickly"
+→ Include call to action
+→ Be confident, not apologetic
+
+GOOD EXAMPLES:
+"I'm excited to bring my distributed systems expertise and collaborative approach to Stripe's mission of simplifying global payments. I look forward to discussing how my experience building scalable backend infrastructure can support your team's goals."
+"Having deployed fault-tolerant systems serving millions of users, I'm ready to contribute to Google Cloud's distributed computing initiatives from day one. I'd welcome the opportunity to discuss how my background aligns with your team's needs."
+
+BAD EXAMPLES (NEVER USE):
+"Thank you for considering my application" (passive)
+"I hope to hear from you soon" (weak)
+"I would be grateful for the opportunity" (submissive)
+
+# RULES FOR ADDRESSING SKILL GAPS (USE SPARINGLY):
+
+IF a critical skill is missing AND gap_bridges provides language:
+→ Mention in ONE sentence maximum in Paragraph 4
+→ Frame as growth opportunity, not deficiency
+→ Always pair with evidence of adaptability
+
+EXAMPLE:
+"While I'm eager to expand my experience with Kubernetes, my track record of independently mastering distributed systems technologies like Hadoop and Docker demonstrates I quickly adapt to new tools."
+
+IF no bridge exists or skill is not critical:
+→ Do NOT mention the gap at all
+→ Focus entirely on strengths
+
+
+# WRITING STYLE AND TONE RULES:
+
+- Tone: professional but conversational — write like a confident human, not a corporate press release.
+- Focus on clarity and substance, not empty formality.
+- Avoid buzzwords, clichés, or filler ("innovative", "cutting-edge", "fast-paced").
+- Prefer direct, active verbs: built, led, delivered, improved.
+- Show enthusiasm through specific achievements, not adjectives.
+- Do not use corporate filler words like leverage, utilize, facilitate, cutting-edge, etc.
+- Avoid passive or apologetic phrasing.
+- Stick to ASCII characters only (no em dashes, curly quotes, ellipses).
+- Do NOT jump between unrelated points or mix multiple projects/experiences without clear connection.
+
+
+
+**Structure**: Exactly 4 paragraphs, no more, no less
+
+
+# EXAMPLES OF STRONG WRITING:
+
+**Strong Opening (Achievement-Focused):**
+"As a CMU graduate who architected a distributed MapReduce engine processing 15,000+ images and placed 2nd globally in the CLEF NLP competition, I'm excited to bring my large-scale systems experience to Amazon's infrastructure team."
+
+**Skills Connection (Quantified Impact):**
+"At Branding Brand, I designed mobile e-commerce applications and implemented A/B tests that improved conversion rates by 18%. This experience with user-driven optimization directly aligns with your focus on data-informed product decisions."
+
+**Gap Framing (When Necessary):**
+"While I'm eager to expand into Go and Kubernetes, my record of independently mastering distributed systems technologies like Hadoop and Docker shows I rapidly learn new stacks."
+
+# OUTPUT FORMAT:
+
+[Candidate Full Name]
+[Phone Number]
+[Email]
+{datetoday}
+
+Dear Hiring Manager,
+
+[Paragraph 1: Strong opening with standout achievement]
+
+[Paragraph 2: Skills match with 2-3 specific examples]
+
+[Paragraph 3: Why this company specifically]
+
+[Paragraph 4: Confident close with call to action]
+
+Sincerely,
+[Candidate Full Name]
+
+Now generate the cover letter following ALL rules above."""
+
+    user_message = f"""Write a cover letter for this job application using the skills analysis as guidance.
+
+TARGET JOB DESCRIPTION:
+{job_desc}
+
+CANDIDATE'S CV:
+{user_cv}
+
+SKILLS ANALYSIS (Structured JSON):
+{skills_analysis}
+
+Generate the cover letter."""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1",
+            temperature=0.5,
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=1500
+        )
+
+        cover_letter = response.choices[0].message.content
+        return {"cover_letter": cover_letter}
+
+    except Exception as e:
+        logging.error(f"Error generating cover letter: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
+
+
+@app.post("/generate-cover-letter")
+@limiter.limit("20/minute")
+async def generate_cover_letter(request: Request, data: dict, current_user=Depends(get_current_user)):
+
+    # ✅ Credit check
     await check_and_use_credit(current_user.id)
 
     job_description = data.get("job_description", "")
     user_cv = data.get("user_cv", "")
 
-    if not job_description:
-        return {"error": "Job description is required"}
+    if not job_description or not user_cv:
+        raise HTTPException(status_code=400, detail="Both CV and job description are required")
 
-    if not user_cv:
-        return {"error": "CV is required"}
+    try:
+        # STEP 1: Parse CV → JSON
+        parsed_cv = await parse_cv(user_cv)
 
-    # SYSTEM MESSAGE: Identity + Rules + Constraints
-    system_message = """You are an expert cover letter writer specializing in tech roles.
+        # STEP 2: Extract Job Description → JSON
+        parsed_job = await extract_job(job_description)
 
-# IDENTITY
-You craft authentic, compelling cover letters that connect candidate experience to job requirements without sounding generic or AI-generated.
-
-# RULES YOU MUST FOLLOW
-
-FORBIDDEN PHRASES - NEVER use these:
-- "Dear Sir or Madam"
-- "cutting-edge"
-- "leveraged"
-- "utilized"
-- "facilitated"
-- "robust"
-- "innovative company" (without specifics)
-
-FORBIDDEN CHARACTERS - NEVER use these:
-- Em dashes (—) - use regular dash (-) instead
-- En dashes (–) - use regular dash (-) instead  
-- Curly quotes (" " ' ') - use straight quotes (" ') instead
-- Ellipsis (…) - use three periods (...) instead
-- Any Unicode characters - use only standard ASCII
-
-REQUIRED STRUCTURE (4 paragraphs max):
-
-PARAGRAPH 1 - Strong Opening:
-- State position and connection to company
-- Include ONE standout achievement with numbers/impact
-Example: "With a Master's in Computer Science from CMU and 2nd place finish in 
-the international CLEF competition, I'm excited to apply for..."
-
-PARAGRAPH 2 - Relevant Experience:
-- 2-3 specific examples connecting CV to job requirements
-- Use job's terminology, quantify impact
-- Focus on transferable qualities (systems thinking, collaboration, scale)
-
-PARAGRAPH 3 - Company-Specific Research:
-- Reference specific products/initiatives by name
-- Show why their mission resonates (be genuine, not generic)
-
-PARAGRAPH 4 - Confident Close:
-- ONE sentence max on skill gaps (if critical): "While I'm eager to expand into 
-[specific tech], my track record of [specific achievement] shows I adapt quickly"
-- Strong value proposition
-- Call to action
-
-PARAGRAPH 4 EXAMPLES:
-
-Strong Confidence:
-"I'm excited to bring my [specific technical strength] and [specific quality] to 
-[company]'s mission of [specific goal]. I'd welcome the opportunity to discuss how 
-my experience in [relevant area] aligns with your team's needs."
-
-Achievement-Focused:
-"Having [specific achievement], I'm ready to contribute to [company initiative] 
-from day one. I look forward to discussing how my background in [technical area] 
-can support your team's goals."
-
-Research-Driven:
-"[Company product]'s approach to [specific feature] aligns perfectly with my passion 
-for [technical area]. I'm eager to discuss how my experience building [relevant system] 
-can contribute to your team's success."
-
-NEVER use:
-- "Thank you for considering my application" (passive)
-- "I hope to hear from you" (weak)
-- "I would be grateful for the opportunity" (submissive)
-
-WRITING RULES:
-- Achievements > Gaps (80% strengths, max 20% gaps)
-- Quantify everything possible (numbers, rankings, scale)
-- Never apologize or deflate
-- If they lack a critical skill, frame as "eager to expand" not "unfortunately lacking"
+        # STEP 3: Analyze Skills
+        skills_analysis = await analyse_skills(
+            json_job_desc=parsed_job,
+            json_cv=parsed_cv
+        )
 
 
-OUTPUT FORMAT:
-[Candidate Full Name]
-[Phone Number]
-[Email]
 
-[Current Date]
+        # STEP 4: Generate tailored CV
+        tailored_cover = await generate_tailored_cover_letter(
+            user_cv=user_cv,
+            job_desc=job_description,
+            skills_analysis=skills_analysis
+        )
 
-["Hiring Team at [Company Name]"]
+        return tailored_cover
 
-[Cover letter body - 4 paragraphs maximum]
 
-WRITING STYLE:
-- Use simple, direct language: "built", "created", "developed", "used", "new"
-- Be specific and concrete, never generic
-- Show genuine research about the company
-- Keep each paragraph to 2-3 sentences maximum
-
-"""
-
-    # USER MESSAGE: Task + Context (RAG pattern)
-    user_message = f"""Write a cover letter for this job application.
-
-TARGET JOB DESCRIPTION:
-{job_description}
-
-CANDIDATE'S CV:
-{user_cv}
-
-EXAMPLES OF STRONG PARAGRAPHS:
-
-Example 1 - Achievement Opening:
-"As a Carnegie Mellon graduate who architected a fault-tolerant MapReduce engine 
-processing 15,000+ images and achieved 2nd place internationally in the CLEF NLP 
-competition, I'm excited to bring my distributed systems expertise to Visa's mission 
-of building next-generation payment infrastructure."
-
-Example 2 - Experience Connection with Scale:
-"At Yahoo's cloud services team, I contributed to backend systems processing millions 
-of user records daily - experience directly applicable to Visa's transaction volumes. 
-My MapReduce engine project demonstrated proficiency in building resilient, 
-fault-tolerant systems critical for payment processing."
-
-Example 3 - Gap Framing (one sentence only):
-"While I'm eager to expand into Go and Docker, my track record of independently 
-building production-ready systems in Java and Python demonstrates I quickly master 
-new technologies."
-
-Now write the cover letter following all rules and using these patterns."""
-
-    response = client.chat.completions.create(
-        model="gpt-4.1",
-        temperature=0.3,  # Low temperature for consistency
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": user_message}
-        ],
-        max_tokens=1500
-    )
-
-    cover_letter = response.choices[0].message.content
-    return {"cover_letter": cover_letter}
+    except Exception as e:
+        print(f"❌ Error in pipeline: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")
 
 
 @app.post("/generate-cover-letter-pdf")
