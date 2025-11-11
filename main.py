@@ -867,7 +867,7 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4.1",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
