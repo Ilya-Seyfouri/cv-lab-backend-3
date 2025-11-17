@@ -524,7 +524,6 @@ Return only valid JSON."""
             detail=f"Skill analysis failed: {str(e)}"
         )
 
-
 async def analyse_skills(json_job_desc, json_cv):
     logging.info("=== STEP 3: Analyzing Skills ===")
 
@@ -535,7 +534,7 @@ async def analyse_skills(json_job_desc, json_cv):
 
     # SYSTEM MESSAGE: Identity + Process + Rules
     system_message = """
-    “You are an expert technical skill analyst who compares CVs to job descriptions.”
+    "You are an expert technical skill analyst who compares CVs to job descriptions."
 
 
     You are receiving two JSON objects:
@@ -548,7 +547,7 @@ async def analyse_skills(json_job_desc, json_cv):
     2. Must-have, important, and nice-to-have keywords
     3. Evidence for each keyword from the CV
     4. How to bridge missing skills using related experiences or transferable skills
-    5. Role alignment with a match score (0.0–1.0)
+    5. Role alignment with a match score (0.0–1.0) and ATS score representing how well the CV matches the job description from an Applicant Tracking System perspective. (0-100)
     6. Prioritized actions for CV tailoring
     7. Soft Skills 
     8. Job responsibilities
@@ -565,6 +564,7 @@ async def analyse_skills(json_job_desc, json_cv):
     - Only analyze technical skills, tools, and methodologies. Ignore soft skills.
     - Prioritize promoting experiences you can highlight and DO NOT claim absent skills.
     - Output only JSON. No extra text, explanations, or comments.
+
 
     EXAMPLES:
 
@@ -648,6 +648,7 @@ async def analyse_skills(json_job_desc, json_cv):
       },
       "role_alignment": {
         "match_score": "<float 0.0-1.0>",
+        "ats_score": "<integer 0-100>",
         "reason": "<short text explanation>"
       },
       "prioritized_actions": [
@@ -657,7 +658,7 @@ async def analyse_skills(json_job_desc, json_cv):
     """
 
     user_message = f"""
-    Analyze this candidate’s CV against the job description and output strictly valid JSON following the structure defined in the system message.
+    Analyze this candidate's CV against the job description and output strictly valid JSON following the structure defined in the system message.
     cv_json = {json_cv}
     job_json = {json_job_desc}
     """
@@ -691,8 +692,6 @@ async def analyse_skills(json_job_desc, json_cv):
             status_code=500,
             detail=f"Skill analysis failed: {str(e)}"
         )
-
-
 
 @app.post("/generate-cv")
 @limiter.limit("25/minute")
@@ -885,15 +884,9 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
         # Sanitize LaTeX special characters
         customized_cv = sanitize_latex(customized_cv)
 
-        parsed_cv = await parse_cv(user_cv)
-        parsed_job =  await extract_job(job_description)
-        skills_report = await analyse_skills(parsed_cv, parsed_job)
 
-        print(skills_report)
 
-        return {"cv": customized_cv,
-                "skills_report": skills_report}
-
+        return {"cv": customized_cv}
     except Exception as e:
         print(f"Error in generate-cv: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -1257,6 +1250,7 @@ Generate the cover letter."""
         cover_letter = response.choices[0].message.content
         return {"cover_letter": cover_letter}
 
+
     except Exception as e:
         logging.error(f"Error generating cover letter: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
@@ -1265,7 +1259,7 @@ Generate the cover letter."""
 @app.post("/generate-cover-letter")
 @limiter.limit("20/minute")
 async def generate_cover_letter(request: Request, data: dict, current_user=Depends(get_current_user)):
-
+    
     # ✅ Credit check
 
     job_description = data.get("job_description", "")
@@ -1296,7 +1290,10 @@ async def generate_cover_letter(request: Request, data: dict, current_user=Depen
             skills_analysis=skills_analysis
         )
 
-        return tailored_cover
+        return {
+            "cover_letter": tailored_cover["cover_letter"],
+            "skills_report": skills_analysis
+        }
 
 
     except Exception as e:
