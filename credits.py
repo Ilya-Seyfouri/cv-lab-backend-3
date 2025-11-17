@@ -37,11 +37,7 @@ async def check_and_use_credit(user_id: str):
     print(f"Is subscribed: {profile.get('is_subscribed')}")
     print(f"Credits remaining: {profile.get('credits_remaining')}")
 
-    # Subscribed users bypass credit limits
-    if profile['is_subscribed']:
-        print("✅ User is subscribed - bypassing credit check")
 
-        return profile
 
     # Free users: check credit limit
     if profile['credits_remaining'] <= 0:

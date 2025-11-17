@@ -122,7 +122,6 @@ LATEX_CV_TEMPLATE = r"""
 \begin{center}
     {\Large \scshape [FULL_NAME]} \\[2mm]
     \footnotesize \raisebox{-0.1\height}
-    \faPhone\ \underline{[PHONE]} ~ 
     {\faEnvelope\  \underline{[EMAIL]}} ~ 
     {\faLinkedin\ \underline{\href{[LINKEDIN_URL]}{[LINKEDIN_DISPLAY]}}  ~
     {\faGithub\ \underline{\href{[GITHUB_URL]}{[GITHUB_DISPLAY]}} ~
