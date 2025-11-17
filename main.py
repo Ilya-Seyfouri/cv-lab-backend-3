@@ -1260,7 +1260,6 @@ Generate the cover letter."""
 @limiter.limit("20/minute")
 async def generate_cover_letter(request: Request, data: dict, current_user=Depends(get_current_user)):
     
-    # ✅ Credit check
 
     job_description = data.get("job_description", "")
     user_cv = data.get("user_cv", "")
