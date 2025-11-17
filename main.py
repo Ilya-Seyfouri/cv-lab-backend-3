@@ -1267,7 +1267,6 @@ Generate the cover letter."""
 async def generate_cover_letter(request: Request, data: dict, current_user=Depends(get_current_user)):
 
     # ✅ Credit check
-    await check_and_use_credit(current_user.id)
 
     job_description = data.get("job_description", "")
     user_cv = data.get("user_cv", "")
