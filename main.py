@@ -231,6 +231,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # With this (you'll update the Railway URL after frontend is deployed):
 origins = [
     "http://localhost:3000",
+    "https://cvlab.ltd",
     "https://cvlab.up.railway.app",  # Allow all Railway domains temporarily
     # Add your actual frontend URL here after deploying frontend
 ]
