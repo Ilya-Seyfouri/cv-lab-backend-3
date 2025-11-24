@@ -1309,30 +1309,53 @@ async def generate_cover_letter_pdf(request: dict):
         return {"error": "Cover letter text is required"}
 
     try:
-        # FIX: Clean Unicode characters
+        # Clean Unicode characters
         replacements = {
-            '\u2014': '-', '\u2013': '-',  # dashes
-            '\u2018': "'", '\u2019': "'",  # single quotes
-            '\u201c': '"', '\u201d': '"',  # double quotes
+            '\u2014': '-', '\u2013': '-',
+            '\u2018': "'", '\u2019': "'",
+            '\u201c': '"', '\u201d': '"',
             '\u2026': '...', '\u00a0': ' ', '\u2022': '-'
         }
         for old, new in replacements.items():
             cover_letter_text = cover_letter_text.replace(old, new)
 
-        # Remove any remaining non-latin-1
         cover_letter_text = cover_letter_text.encode('latin-1', errors='ignore').decode('latin-1')
 
-        # Create PDF
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", size=11)
         pdf.set_auto_page_break(auto=True, margin=15)
 
-        for line in cover_letter_text.split('\n'):
+        lines = cover_letter_text.split('\n')
+
+        # Find where body starts
+        body_start_index = 0
+        for i, line in enumerate(lines):
+            if line.strip().lower().startswith("dear"):
+                body_start_index = i
+                break
+
+        # Header lines (before "Dear")
+        header_lines = [l.strip() for l in lines[:body_start_index] if l.strip()]
+
+        if header_lines:
+            # Name = left, bold
+            pdf.set_font("Arial", style='B', size=12)
+            pdf.cell(0, 6, header_lines[0], ln=True, align='L')
+
+            # Phone, Email, Date = right aligned
+            pdf.set_font("Arial", size=11)
+            for line in header_lines[1:]:
+                pdf.cell(0, 6, line, ln=True, align='R')
+
+        pdf.ln(8)
+
+        # Body
+        pdf.set_font("Arial", size=11)
+        for line in lines[body_start_index:]:
             if line.strip():
                 pdf.multi_cell(0, 6, line.strip())
             else:
-                pdf.ln(3)
+                pdf.ln(4)
 
         pdf_output = pdf.output(dest='S').encode('latin-1')
         pdf_base64 = base64.b64encode(pdf_output).decode('utf-8')
