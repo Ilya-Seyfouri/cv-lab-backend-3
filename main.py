@@ -18,6 +18,15 @@ from slowapi.errors import RateLimitExceeded
 from auth import get_current_user
 from credits import check_and_use_credit, get_user_credits
 from datetime import datetime
+import json
+from generations import (
+    save_generation,
+    get_user_generations,
+    get_generation_by_id,
+    delete_generation,
+    get_generation_stats
+)
+from typing import Optional
 
 
 import logging
@@ -660,6 +669,15 @@ class JobDescriptionRequest(BaseModel):
     job_description: str
     user_cv: str = ""
 
+class SaveGenerationRequest(BaseModel):
+    role_title: str
+    company_name: Optional[str] = None
+    ats_score: Optional[int] = None
+    match_score: Optional[float] = None
+    cv_pdf_base64: Optional[str] = None
+    cover_letter_pdf_base64: Optional[str] = None
+    cv_template: Optional[str] = None
+
 
 @app.get("/credits")
 async def get_credits(current_user=Depends(get_current_user)):
@@ -866,13 +884,13 @@ JSON structure must include:
 
 Example 1:
 Job Description:
-We are looking for a Backend Engineer with 3+ years experience in Python and Django. 
+The Visa Technology Team is  looking for a Backend Engineer with 3+ years experience in Python and Django. 
 Experience with PostgreSQL is required. Knowledge of Docker and AWS is a plus. 
 You will be building and maintaining REST APIs and collaborating closely with the frontend team. 
 Excellent communication and teamwork skills are required.
 Output JSON:
 {{
-    "role_title": "Backend Engineer",
+    "role_title": "Backend Engineer at Visa",
   "required_skills": ["Python", "Django", "PostgreSQL"],
   "nice_to_have": ["Docker", "AWS"],
   "experience_level": "mid",
@@ -882,11 +900,11 @@ Output JSON:
 
 Example 2:
 Job Description:
-Looking for a Junior Frontend Developer proficient in React and JavaScript. 
+J.P Morgan Technology team is Looking for a Junior Frontend Developer proficient in React and JavaScript. 
 Knowledge of CSS frameworks is a bonus. Must be comfortable working in Agile teams.
 Output JSON:
 {{
-    "role_title": "Junior Frontend Developer",
+    "role_title": "Junior Frontend Developer at Goldman Sachs",
   "required_skills": ["React", "JavaScript"],
   "nice_to_have": ["CSS frameworks"],
   "experience_level": "junior",
@@ -929,6 +947,7 @@ Return only valid JSON."""
             status_code=500,
             detail=f"Skill analysis failed: {str(e)}"
         )
+
 
 async def analyse_skills(json_job_desc, json_cv):
     logging.info("=== STEP 3: Analyzing Skills ===")
@@ -1098,6 +1117,8 @@ async def analyse_skills(json_job_desc, json_cv):
             status_code=500,
             detail=f"Skill analysis failed: {str(e)}"
         )
+
+
 
 @app.post("/generate-tech-cv")
 @limiter.limit("25/minute")
@@ -2070,17 +2091,17 @@ Generate the cover letter."""
         logging.error(f"Error generating cover letter: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Cover letter generation failed: {str(e)}")
 
-
 @app.post("/generate-cover-letter")
 @limiter.limit("20/minute")
 async def generate_cover_letter(request: Request, data: dict, current_user=Depends(get_current_user)):
-    
-
     job_description = data.get("job_description", "")
     user_cv = data.get("user_cv", "")
 
     if not job_description or not user_cv:
         raise HTTPException(status_code=400, detail="Both CV and job description are required")
+
+    # ✅ Initialize job_info with default value FIRST
+    job_info = {"role_title": ""}
 
     try:
         # STEP 1: Parse CV → JSON
@@ -2089,15 +2110,26 @@ async def generate_cover_letter(request: Request, data: dict, current_user=Depen
         # STEP 2: Extract Job Description → JSON
         parsed_job = await extract_job(job_description)
 
+        # ✅ Parse job_info - clean up markdown if present
+        try:
+            # Remove markdown code blocks if present
+            clean_job = parsed_job.strip()
+            if clean_job.startswith("```"):
+                clean_job = re.sub(r'^```[a-zA-Z]*\n?', '', clean_job)
+                clean_job = re.sub(r'\n?```$', '', clean_job)
+            job_info = json.loads(clean_job)
+            print(f"✅ Parsed job_info: {job_info.get('role_title', 'N/A')}")
+        except Exception as parse_error:
+            print(f"⚠️ Failed to parse job_info: {parse_error}")
+            job_info = {"role_title": ""}
+
         # STEP 3: Analyze Skills
         skills_analysis = await analyse_skills(
             json_job_desc=parsed_job,
             json_cv=parsed_cv
         )
 
-
-
-        # STEP 4: Generate tailored CV
+        # STEP 4: Generate tailored cover letter
         tailored_cover = await generate_tailored_cover_letter(
             user_cv=user_cv,
             job_desc=job_description,
@@ -2106,14 +2138,13 @@ async def generate_cover_letter(request: Request, data: dict, current_user=Depen
 
         return {
             "cover_letter": tailored_cover["cover_letter"],
-            "skills_report": skills_analysis
+            "skills_report": skills_analysis,
+            "job_info": job_info
         }
-
 
     except Exception as e:
         print(f"❌ Error in pipeline: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")
-
 
 @app.post("/generate-cover-letter-pdf")
 async def generate_cover_letter_pdf(request: dict):
@@ -2184,3 +2215,134 @@ async def generate_cover_letter_pdf(request: dict):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+@app.post("/save-generation")
+async def save_generation_endpoint(
+        request: Request,
+        data: SaveGenerationRequest,
+        current_user=Depends(get_current_user)
+):
+    """
+    Save a CV/Cover Letter generation to the database.
+    Called after successful generation on the frontend.
+    """
+
+    print(f"=== SAVE GENERATION for user: {current_user.id} ===")
+
+    try:
+        result = await save_generation(
+            user_id=current_user.id,
+            role_title=data.role_title,
+            company_name=data.company_name,
+            ats_score=data.ats_score,
+            match_score=data.match_score,
+            cv_pdf_base64=data.cv_pdf_base64,
+            cover_letter_pdf_base64=data.cover_letter_pdf_base64,
+            cv_template=data.cv_template
+        )
+
+        return {
+            "success": True,
+            "generation_id": result.get("id"),
+            "message": "Generation saved successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error saving generation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/generations")
+async def get_generations_endpoint(
+        request: Request,
+        limit: int = 20,
+        current_user=Depends(get_current_user)
+):
+    """
+    Get all generations for the current user (non-expired only).
+    """
+
+    print(f"=== GET GENERATIONS for user: {current_user.id} ===")
+
+    try:
+        generations = await get_user_generations(
+            user_id=current_user.id,
+            limit=limit
+        )
+
+        stats = await get_generation_stats(current_user.id)
+
+        return {
+            "success": True,
+            "generations": generations,
+            "stats": stats
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error fetching generations: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/generations/{generation_id}")
+async def get_generation_endpoint(
+        request: Request,
+        generation_id: str,
+        current_user=Depends(get_current_user)
+):
+    """
+    Get a specific generation with signed URLs for downloading PDFs.
+    """
+
+    print(f"=== GET GENERATION {generation_id} for user: {current_user.id} ===")
+
+    try:
+        generation = await get_generation_by_id(
+            user_id=current_user.id,
+            generation_id=generation_id
+        )
+
+        return {
+            "success": True,
+            "generation": generation
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error fetching generation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/generations/{generation_id}")
+async def delete_generation_endpoint(
+        request: Request,
+        generation_id: str,
+        current_user=Depends(get_current_user)
+):
+    """
+    Delete a specific generation and its associated files.
+    """
+
+    print(f"=== DELETE GENERATION {generation_id} for user: {current_user.id} ===")
+
+    try:
+        await delete_generation(
+            user_id=current_user.id,
+            generation_id=generation_id
+        )
+
+        return {
+            "success": True,
+            "message": "Generation deleted successfully"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Error deleting generation: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))

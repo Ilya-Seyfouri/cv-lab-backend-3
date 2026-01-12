@@ -122,46 +122,26 @@ async def save_generation(
 
 
 async def get_user_generations(user_id: str, limit: int = 20) -> list:
-    """
-    Get all non-expired generations for a user.
-
-    Args:
-        user_id: The user's UUID
-        limit: Maximum number of records to return
-
-    Returns:
-        list: List of generation records
-    """
-
     try:
-        # Get generations that haven't expired yet
-        response = supabase.table('generations') \
-            .select('id, role_title, company_name, ats_score, match_score, cv_template, created_at, expires_at') \
-            .eq('user_id', user_id) \
-            .gt('expires_at', datetime.utcnow().isoformat()) \
-            .order('created_at', desc=True) \
-            .limit(limit) \
+        response = (
+            supabase.table("generations")
+            .select("id, role_title, company_name, ats_score, match_score, cv_template, created_at, expires_at")
+            .eq("user_id", user_id)
+            .gt("expires_at", datetime.utcnow().isoformat())
+            .order("created_at", desc=True)
+            .limit(limit)
             .execute()
+        )
 
-        generations = response.data or []
-
-        # Calculate days until expiry for each generation
-        for gen in generations:
-            if gen.get('expires_at'):
-                expires_at = datetime.fromisoformat(gen['expires_at'].replace('Z', '+00:00'))
-                days_left = (expires_at - datetime.now(expires_at.tzinfo)).days
-                gen['days_until_expiry'] = max(0, days_left)
-            else:
-                gen['days_until_expiry'] = 0
-
-        return generations
+        return response.data or []
 
     except Exception as e:
         print(f"❌ Error fetching generations: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch generations: {str(e)}"
+            detail=f"Failed to fetch generations: {str(e)}",
         )
+
 
 
 async def get_generation_by_id(user_id: str, generation_id: str) -> dict:
