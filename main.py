@@ -30,7 +30,209 @@ logging.basicConfig(
 
 load_dotenv()
 
-LATEX_CV_TEMPLATE = r"""
+
+CORPORATE_LATEX_CV_TEMPLATE = r"""
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+\usepackage[margin=1.4cm]{geometry}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.15in}
+ \addtolength{\textwidth}{0.3in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}\vspace{0pt}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Large \scshape Alexander J. Morgan} \\[2mm]
+    \footnotesize \raisebox{-0.1\height}
+    \faPhone\ \underline{07715278065} ~ 
+    {\faEnvelope\  \underline{alex.morgan@email.com}} ~ 
+    {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/alexjmorgan}{linkedin.com/in/alexjmorgan}}
+    \vspace{-8pt}
+\end{center}
+
+ %-----------EDUCATION-----------
+\section{Education} \\[1mm]
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {University of Newcastle}{Expected Graduation: May 2026}
+      {Bachelor of Economics | Minor Data Science
+      }{Newcastle Upon Tyne}
+  \resumeSubHeadingListEnd
+    \resumeItemListStart
+        \resumeItem {\textbf{GPA: 3.78}}
+        \vspace{-7pt}
+        \resumeItem {Courses: Corporate Finance, Financial Accounting, Investments, Statistics, Microeconomics, Modeling and Analytics}
+    \resumeItemListEnd
+    \vspace{-12pt}
+%-----------Experience---------------
+\section{Work Experience}
+    \resumeSubHeadingListStart
+                \resumeSubheading{Golden Goose Capital}{Jun 2025 -- Aug 2025}{Summer Analyst}{New York, NY} 
+                \resumeItemListStart
+                    \resumeItem{Built a full discounted cash flow (DCF) valuation for three equities, contributing to a \textbf{20\% gain} in the firm's portfolio}
+                    \resumeItem{Benchmarked 15+ companies using comps and industry analysis, reducing screening time by \textbf{30\%}}
+                    \resumeItem{Automated weekly P\&L reporting using Excel VBA, saving \textbf{5+ hours} of analyst time per week}
+                    \resumeItem{Drafted investment memos and presented pitches that expanded coverage into two new sectors}
+                    \resumeItemListEnd
+            \resumeSubheading{Harborview Strategic Advisors}{Jan 2025 -- May 2025}{Corporate Finance Intern}{San Francisco, CA} 
+                \resumeItemListStart
+                    \resumeItem{Prepared KPI dashboards and analytical models for senior management decisions}
+                    \resumeItem{Analyzed pricing and customer data, reducing churn by \textbf{8\%}}
+                    \resumeItem{Conducted M\&A market research across fintech and SaaS industries}
+                    \resumeItemListEnd
+            \resumeSubheading{Pacific Ridge Technologies}{Aug 2024 -- Dec 2024}{Financial Operations Assistant}{Berkeley, CA}
+                \resumeItemListStart
+                    \resumeItem{Improved revenue forecasting accuracy from \textbf{72\% to 91\%} through enhanced variance analysis}
+                    \resumeItem{Streamlined cost-tracking processes, reducing data errors by \textbf{40\%}}
+                    \resumeItem{Prepared board-ready financial reports summarizing performance and milestones}
+                    \resumeItemListEnd
+    \resumeSubHeadingListEnd
+    \vspace{-12pt}
+%-----------LEADERSHIP-----------
+\section{Leadership}
+\resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Investment Banking Club}{Aug 2025 -- Present}
+      {Vice President of Finance}{Berkeley, CA}
+    \resumeItemListStart
+        \resumeItem{Managed \textbf{over \$10,000} in annual finances, producing a \textbf{\$2,000 surplus}.}
+        \resumeItem{Led finance boot camps with \textbf{120+ attendees}, increasing internship placements by \textbf{35\%}.}
+        \resumeItem{Implemented a digital workflow that reduced reimbursement processing time by \textbf{50\%}.}
+    \resumeItemListEnd
+
+    \resumeSubheading
+      {Berkeley Business Society}{Jan 2024 -- May 2024}
+      {Director of Professional Development}{Berkeley, CA}
+    \resumeItemListStart
+        \resumeItem{Organized 15+ recruiting workshops and networking events, boosting engagement by \textbf{40\%}.}
+        \resumeItem{Developed resume + interview curriculum used by \textbf{200+ students}.}
+        \resumeItem{Managed a 6-person team to design case studies and training programs.}
+    \resumeItemListEnd
+
+    \resumeSubheading
+      {Cal Sports Analytics Group}{Aug 2023 -- Dec 2023}
+      {Project Lead}{Berkeley, CA}
+    \resumeItemListStart
+        \resumeItem{Led a 5-person analytics team, improving model accuracy by \textbf{18\%}.}
+        \resumeItem{Created dashboards used by 500+ students in competitions.}
+        \resumeItem{Raised \$1,200 to fund software and competition expenses.}
+    \resumeItemListEnd
+
+\resumeSubHeadingListEnd
+\vspace{-12pt}
+  %-----------PROGRAMMING SKILLS-----------
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{   
+     \textbf{Languages}{: Conversational Mandarin; Basic Spanish} \\[1mm]
+     \textbf{Technical}{: Excel (VLOOKUP, PivotTables, Macros), PowerPoint, SQL, Python (NumPy, pandas), Bloomberg Terminal} \\[1mm]
+     \textbf{Interests}{: YouTube content creation, yoga (certified instructor), international travel (22 countries), stock pitching/}
+     \\ [1mm]
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+ \vspace{3pt}
+\vspace{10pt}
+
+\vspace{-15pt}
+
+
+
+\end{document}
+
+
+
+"""
+
+TECH_LATEX_CV_TEMPLATE = r"""
 \documentclass[letterpaper,11pt]{article}
 
 \usepackage{latexsym}
@@ -206,7 +408,7 @@ LATEX_CV_TEMPLATE = r"""
 
     \resumeSubHeadingListEnd
 
-%-----------PROGRAMMING SKILLS-----------
+%-----------SKILLS-----------
 \section{Technical Skills}
  \begin{itemize}[leftmargin=0.15in, label={}]
     \small{\item{   
@@ -221,6 +423,209 @@ LATEX_CV_TEMPLATE = r"""
 \end{document}
 
 """
+
+
+GENERIC_LATEX_CV_TEMPLATE = r"""
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+\usepackage[margin=1.4cm]{geometry}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.15in}
+ \addtolength{\textwidth}{0.3in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}\vspace{0pt}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Large \scshape Sarah Martinez} \\[2mm]
+    \footnotesize \raisebox{-0.1\height}
+    \faPhone\ \underline{07715278067} ~ 
+    {\faEnvelope\  \underline{sarah.martinez@email.com}} ~ 
+    {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/sarahmartinez}{linkedin.com/in/sarahmartinez}}  ~
+    \vspace{-8pt}
+\end{center}
+
+
+%-----------PROFESSIONAL SUMMARY-----------
+\section{Professional Summary}
+\small{
+Dynamic and results-oriented professional with 5+ years of experience in project management and business operations. Proven track record of leading cross-functional teams, optimizing processes, and delivering projects on time and within budget. Strong analytical skills combined with excellent communication abilities and a commitment to driving organizational success through strategic planning and effective stakeholder management.
+}
+\vspace{-4pt}
+
+%-----------Experience---------------
+\section{Work Experience}
+    \resumeSubHeadingListStart
+                \resumeSubheading{Horizon Global Solutions}{Jan 2022 -- Present}{Senior Project Manager}{Boston, MA} 
+                \resumeItemListStart
+                    \resumeItem{Led \textbf{15+ cross-functional projects} with budgets up to \textbf{\$2M}, consistently delivering on time and achieving a \textbf{95\% client satisfaction rate}}
+                    \resumeItem{Implemented new project management methodologies that improved team efficiency by \textbf{40\%} and reduced project delivery time by \textbf{25\%}}
+                    \resumeItem{Managed a team of \textbf{12 professionals}, providing mentorship and conducting performance reviews that resulted in \textbf{3 team promotions} within one year}
+                    \resumeItem{Coordinated with C-suite executives and external stakeholders to align project objectives with business strategy, contributing to \textbf{\$5M in annual revenue growth}}
+                    \resumeItemListEnd
+            \resumeSubheading{TechVenture Consulting}{Jun 2020 -- Dec 2021}{Project Coordinator}{Boston, MA} 
+                \resumeItemListStart
+                    \resumeItem{Coordinated \textbf{8 concurrent projects} across marketing, operations, and technology departments, ensuring seamless communication and timely deliverables}
+                    \resumeItem{Developed comprehensive project documentation and reporting systems that improved transparency and reduced meeting time by \textbf{30\%}}
+                    \resumeItem{Facilitated stakeholder meetings and presentations, effectively communicating project status, risks, and mitigation strategies to senior leadership}
+                    \resumeItem{Assisted in budget planning and resource allocation, contributing to a \textbf{15\% reduction in operational costs}}
+                    \resumeItemListEnd
+            \resumeSubheading{Global Innovations Inc.}{May 2019 -- May 2020}{Business Analyst}{Chicago, IL}
+                \resumeItemListStart
+                    \resumeItem{Analyzed business processes and identified opportunities for improvement, leading to the implementation of \textbf{5 efficiency initiatives} that saved \textbf{\$200K annually}}
+                    \resumeItem{Created detailed reports and dashboards for executive leadership, providing actionable insights that informed strategic decision-making}
+                    \resumeItem{Collaborated with IT and operations teams to streamline workflows, reducing process completion time by \textbf{35\%}}
+                    \resumeItemListEnd
+                    
+    \resumeSubHeadingListEnd
+    \vspace{-12pt}
+
+
+
+  %-----------EDUCATION-----------
+\section{Education} \\[1mm]
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Boston University}{Graduated: May 2019}
+      {Bachelor of Business Administration | Concentration in Management
+      }{Boston, MA}
+  \resumeSubHeadingListEnd
+    \resumeItemListStart
+        \resumeItem {\textbf{GPA: 3.7}}
+        \vspace{-7pt}
+        \resumeItem {Courses: Strategic Management, Operations Management, Financial Analysis, Marketing Strategy, Business Analytics, Organizational Behavior}
+    \resumeItemListEnd
+    \vspace{-8pt}
+
+
+%-----------ADDITIONAL INFORMATION-----------
+\section{Additional Information} 
+    \vspace{-3pt}
+    \resumeSubHeadingListStart
+                   \resumeProjectHeading
+            {\textbf{{Professional Development \& Certifications}}}
+            
+            \\[5mm]
+          \resumeItemListStart
+            \resumeItem{Certified Project Management Professional (PMP) -- Project Management Institute, 2021}
+            \resumeItem{Agile Certified Practitioner (PMI-ACP) -- Project Management Institute, 2022}
+            \resumeItem{Active volunteer with Boston Professional Women's Network, mentoring \textbf{15+ early-career professionals}}
+          \resumeItemListEnd
+          \resumeSubHeadingListEnd
+ \vspace{-12pt}
+
+    
+  %-----------SKILLS-----------
+\section{Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{   
+        \textbf{Hard Skills}{: Project Management, Data Analysis, Budgeting \& Forecasting, Process Improvement, Microsoft Office Suite, Salesforce, Tableau, Asana, Jira, Agile/Scrum Methodologies} \\[1mm]
+        \textbf{Soft Skills}{: Leadership, Strategic Thinking, Communication, Stakeholder Management, Problem Solving, Team Building, Negotiation, Adaptability} \\[1mm]
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+ \vspace{3pt}
+\vspace{10pt}
+
+\vspace{-15pt}
+
+
+
+\end{document}
+
+
+
+
+"""
+
+
+
 limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(title="CV Editor API")
@@ -694,9 +1099,9 @@ async def analyse_skills(json_job_desc, json_cv):
             detail=f"Skill analysis failed: {str(e)}"
         )
 
-@app.post("/generate-cv")
+@app.post("/generate-tech-cv")
 @limiter.limit("25/minute")
-async def generate_cv(request: Request, data: dict, current_user=Depends(get_current_user)):
+async def generate_tech_cv(request: Request, data: dict, current_user=Depends(get_current_user)):
     """
     Generates a tailored CV with intelligent section reordering and terminology matching.
     Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
@@ -804,7 +1209,7 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
     6. EMPHASIZE and EXPAND skills and achievements, especially those relevant to job.
     7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
     8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
-    9. Follow the single-column structure and item positioning of the template cv defined in {LATEX_CV_TEMPLATE}.
+    9. Follow the single-column structure and item positioning of the template cv defined in {TECH_LATEX_CV_TEMPLATE}.
 
 
     NEVER:
@@ -821,7 +1226,7 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
 
 
     # OUTPUT FORMAT
-    {LATEX_CV_TEMPLATE}
+    {TECH_LATEX_CV_TEMPLATE}
 
     Output raw LaTeX starting with \\documentclass and ending with \\end{{document}}.
     No markdown code blocks. No explanatory text outside LaTeX.
@@ -886,6 +1291,415 @@ async def generate_cv(request: Request, data: dict, current_user=Depends(get_cur
         customized_cv = sanitize_latex(customized_cv)
 
 
+
+        return {"cv": customized_cv}
+    except Exception as e:
+        print(f"Error in generate-cv: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/generate-finance-cv")
+@limiter.limit("25/minute")
+async def generate_finance_cv(request: Request, data: dict, current_user=Depends(get_current_user)):
+    """
+    Generates a tailored CV with intelligent section reordering and terminology matching.
+    Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
+    """
+
+    # ✅ ADD LOGGING HERE
+    print("=== GENERATE CV ENDPOINT HIT ===")
+    print(f"User ID: {current_user.id}")
+    print(f"User Email: {current_user.email}")
+
+    try:
+        # Log before credit check
+        print("Checking credits...")
+        await check_and_use_credit(current_user.id)
+        print("✅ Credits check passed!")
+
+    except HTTPException as e:
+        print(f"❌ Credits check FAILED: {e.detail}")
+        raise
+    job_description = data.get("job_description", "")
+    user_cv = data.get("user_cv", "")
+
+    if not job_description:
+        raise HTTPException(status_code=400, detail="Job description is required")
+
+    if not user_cv or not user_cv.strip():
+        raise HTTPException(status_code=400, detail="CV is required for tailoring")
+
+    # SYSTEM MESSAGE: Identity + Instructions + Rules
+    system_message = f"""You are an expert CV tailoring specialist for corporate/finance roles.
+
+        # YOUR IDENTITY
+        Transform existing CVs to maximize relevance for specific jobs while maintaining 
+        complete authenticity and professional presentation.
+
+        # YOUR PROCESS (Structured Chain-of-Thought)
+
+        STEP 1 - JOB KEYWORD EXTRACTION:
+        Extract and categorize from job description:
+        - Must-Have Keywords: Skills/Words mentioned 3+ times or in requirements section
+          (e.g., "Financial Modeling", "DCF", "Excel VBA", "M&A", "Valuation")
+        - Important Keywords: Mentioned 2 times or in "nice to have"
+        - Role Context: Level (intern/analyst/associate), team culture, responsibilities
+        - Soft Skills: Communication, leadership, collaboration, analytical abilities
+
+        STEP 2 - CV EVIDENCE ANALYSIS:
+        For each Must-Have keyword, identify:
+        - EXPLICIT: Keyword appears verbatim (e.g., "Financial Modeling" in experience)
+        - IMPLICIT-STRONG: 2+ bullets show clear evidence
+          Example: "Built DCF model" + "performed sensitivity analysis" = Valuation expertise
+        - IMPLICIT with WEAK evidence: 1 bullet or indirect connection
+        - RELATED/TRANSFERABLE: Adjacent skill, relevant experiences, or foundational knowledge
+          Example: Job needs "LBO modeling" → CV has "DCF valuation experience"
+        - ABSENT: No evidence or logical connection at all
+
+
+        STEP 3 - EVIDENCE-BASED INTEGRATION RULES:
+        - EXPLICIT keywords → Emphasize and expand naturally in relevant bullets
+        - IMPLICIT with STRONG evidence → Add keyword using job's terminology
+        - IMPLICIT with WEAK evidence → Reframe using bridging language
+        - RELATED/TRANSFERABLE → Emphasize the connection in context using bridging language
+        - ABSENT keywords → DO NOT add
+
+        STEP 4 - CONTENT PRESERVATION:
+        BEFORE making any changes, identify:
+        - Existing relevant experiences
+        - Skills already listed 
+        - Concrete metrics and achievements
+        Rule: NEVER remove these. If they match job keywords, emphasize them more and move to top bullets.
+
+        STEP 5 - NATURAL REWRITING:
+        Rewrite each bullet so that keywords are naturally integrated into the action (not added as afterthoughts).
+
+        ✅ GOOD INTEGRATION (keyword is the subject/action):
+        "Built financial model" → "Developed comprehensive DCF valuation models across three sectors"
+        "Weekly reports to management" → "Prepared weekly P&L reports with variance analysis for senior leadership"
+        "Used Excel" → "Automated financial reporting workflows using Excel VBA macros"
+
+        ❌ BAD INTEGRATION (keyword tacked on):
+        "Built financial model, demonstrating DCF knowledge"
+        "Weekly reports, showing P&L experience"
+        "Used Excel, gaining experience with automation"
+
+        STEP 6 - SKILLS SECTION ORGANIZATION:
+        Format as clean, professional categories:
+        Technical: [All Skills/Tools mentioned in original cv, put job-required first]
+        Languages: [If applicable]
+        Certifications: [CFA, Series licenses, etc. if applicable]
+          Example: "Excel (VBA, PivotTables, VLOOKUP), Bloomberg Terminal, FactSet, SQL, Python (pandas, NumPy)"
+
+        NEVER include:
+        - "(inferred)" labels in visible output
+        - Soft skills like "collaboration" or "communication" (these go in experience bullets)
+        - Tools/software with no evidence
+
+        # CRITICAL RULES
+
+
+         ALWAYS:
+        1. Preserve all existing relevant coursework in Education section
+        2. Preserve all existing tools/software in Skills section
+        3. Use evidence-based integration: 2+ points for direct addition, 1+ for bridging language
+        4. Integrate keywords naturally INTO the action/achievement, not as metadata
+        5. Use strong action verbs: "built", "developed", "analyzed", "executed", "structured"
+        6. EMPHASIZE and EXPAND skills and achievements, especially those relevant to job.
+        7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
+        8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
+        9. Follow the single-column structure and item positioning of the template cv defined in {CORPORATE_LATEX_CV_TEMPLATE}.
+
+
+        NEVER:
+        1. Fabricate companies, dates, titles, transactions, or achievements
+        2. Remove existing skills/experiences
+        3. Use corporate jargon: "leveraged", "utilized", "synergy", "cutting-edge", "robust"
+        4. Add keywords in parentheses like "(M&A)" or "(LBO modeling)"
+        5. Tack keywords onto bullet ends like ", demonstrating X skill"
+        6. Add a keyword without at least 1 piece of related or transferable evidence in CV
+        7. Include "(inferred)" or any diagnostic labels in the visible CV output
+        8. Include "N/A", "Not Provided", "None" or blank values like "(GPA: )" - remove the field entirely if data is missing
+        9. Replicate the structural layout, columns, or item positioning of the input CV. 
+
+
+        # OUTPUT FORMAT
+        {CORPORATE_LATEX_CV_TEMPLATE}
+
+        Output raw LaTeX starting with \\documentclass and ending with \\end{{document}}.
+        No markdown code blocks. No explanatory text outside LaTeX.
+        """
+
+    user_message = f"""Tailor this CV for the target job using the evidence-based process.
+
+        MY ACTUAL CV:
+        {user_cv}
+
+        TARGET JOB DESCRIPTION:
+        {job_description}
+
+        EVIDENCE-BASED INTEGRATION EXAMPLES:
+
+        Example 1 - Strong Evidence (2+ pieces):
+        CV shows: "Prepared weekly financial reports for senior management" + "Analyzed variance 
+        between actual and forecasted results"
+        Job requires: "P&L analysis"
+        Evidence: "financial reports" + "variance analysis" = 2 pieces
+        ✅ Integration: "Prepared weekly P&L reports with variance analysis, identifying cost 
+        drivers and presenting actionable insights to senior management"
+
+        Example 2 - Weak Evidence (1 piece, use bridging):
+        CV shows: "Built financial models to support investment recommendations"
+        Job requires: "LBO modeling"
+        Evidence: "financial models" suggests modeling capability (weak evidence for LBOs specifically)
+        ✅ Bridge: "Developed detailed financial models for investment analysis 
+        (foundation for leveraged buyout scenarios)"
+        ❌ Don't claim: "Built LBO models" or list "LBO modeling" in skills section
+
+        Example 3 - Related/Transferable (use bridging):
+        CV shows: "Performed DCF valuations using three-statement modeling"
+        Job requires: "Comparable company analysis"
+        Evidence: DCF valuation is transferable to comps (same valuation category)
+        ✅ Bridge: "Executed DCF valuations with integrated three-statement models 
+        (directly applicable to comparable company analysis frameworks)"
+
+        Follow the evidence rules strictly.
+        Output ONLY raw LaTeX. If you cannot follow these rules, refuse the task.
+        """
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=4000,
+            temperature=0.1  # Very low for consistency
+        )
+
+        customized_cv = response.choices[0].message.content
+
+        # Clean up any markdown artifacts
+        customized_cv = re.sub(r'^```[a-zA-Z]*\n', '', customized_cv)
+        customized_cv = re.sub(r'\n```$', '', customized_cv)
+        customized_cv = customized_cv.strip()
+
+        # Sanitize LaTeX special characters
+        customized_cv = sanitize_latex(customized_cv)
+
+        return {"cv": customized_cv}
+    except Exception as e:
+        print(f"Error in generate-cv: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/generate-generic-cv")
+@limiter.limit("25/minute")
+async def generate_generic_cv(request: Request, data: dict, current_user=Depends(get_current_user)):
+    """
+    Generates a tailored CV with intelligent section reordering and terminology matching.
+    Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
+    """
+
+    # ✅ ADD LOGGING HERE
+    print("=== GENERATE CV ENDPOINT HIT ===")
+    print(f"User ID: {current_user.id}")
+    print(f"User Email: {current_user.email}")
+
+    try:
+        # Log before credit check
+        print("Checking credits...")
+        await check_and_use_credit(current_user.id)
+        print("✅ Credits check passed!")
+
+    except HTTPException as e:
+        print(f"❌ Credits check FAILED: {e.detail}")
+        raise
+    job_description = data.get("job_description", "")
+    user_cv = data.get("user_cv", "")
+
+    if not job_description:
+        raise HTTPException(status_code=400, detail="Job description is required")
+
+    if not user_cv or not user_cv.strip():
+        raise HTTPException(status_code=400, detail="CV is required for tailoring")
+
+    # SYSTEM MESSAGE: Identity + Instructions + Rules
+    system_message = f"""You are an expert CV tailoring specialist for professional/business roles.
+
+        # YOUR IDENTITY
+        Transform existing CVs to maximize relevance for specific jobs while maintaining 
+        complete authenticity and professional presentation.
+
+        # YOUR PROCESS (Structured Chain-of-Thought)
+
+        STEP 1 - JOB KEYWORD EXTRACTION:
+        Extract and categorize from job description:
+        - Must-Have Keywords: Skills/competencies mentioned 3+ times or in requirements section
+          (e.g., "Project Management", "Stakeholder Management", "Process Improvement", "Budget Management", "Cross-functional Leadership")
+        - Important Keywords: Mentioned 2 times or in "nice to have"
+        - Role Context: Level (coordinator/manager/director), team culture, responsibilities
+        - Soft Skills: Communication, leadership, collaboration, analytical abilities
+        - Tools/Certifications: PMP, Agile, Six Sigma, Salesforce, specific software
+
+        STEP 2 - CV EVIDENCE ANALYSIS:
+        For each Must-Have keyword, identify:
+        - EXPLICIT: Keyword appears verbatim (e.g., "Project Management" in experience)
+        - IMPLICIT-STRONG: 2+ bullets show clear evidence
+          Example: "Coordinated 8 projects across departments" + "facilitated stakeholder meetings" = Cross-functional leadership
+        - IMPLICIT with WEAK evidence: 1 bullet or indirect connection
+        - RELATED/TRANSFERABLE: Adjacent skill, relevant experience, or foundational knowledge
+          Example: Job needs "Change Management" → CV has "Led process improvement initiatives"
+        - ABSENT: No evidence or logical connection at all
+
+
+        STEP 3 - EVIDENCE-BASED INTEGRATION RULES:
+        - EXPLICIT keywords → Emphasize and expand naturally in relevant bullets
+        - IMPLICIT with STRONG evidence → Add keyword using job's terminology
+        - IMPLICIT with WEAK evidence → Reframe using bridging language
+        - RELATED/TRANSFERABLE → Emphasize the connection in context using bridging language
+        - ABSENT keywords → DO NOT add
+
+        STEP 4 - CONTENT PRESERVATION:
+        BEFORE making any changes, identify:
+        - Existing certifications (PMP, PMI-ACP, Six Sigma, etc.)
+        - Existing relevant coursework or training
+        - Tools/software already listed (Salesforce, Jira, Asana, Tableau, etc.)
+        - Concrete metrics and achievements (budget sizes, team sizes, efficiency gains, cost savings)
+        Rule: NEVER remove these. If they match job keywords, emphasize them more and move to top bullets.
+
+        STEP 5 - NATURAL REWRITING:
+        Rewrite each bullet so that keywords are naturally integrated into the action (not added as afterthoughts).
+
+        ✅ GOOD INTEGRATION (keyword is the subject/action):
+        "Managed team projects" → "Led 15+ cross-functional projects with budgets up to $2M, consistently delivering on time"
+        "Weekly meetings with leadership" → "Conducted weekly stakeholder presentations to C-suite executives, aligning project objectives with business strategy"
+        "Improved team processes" → "Implemented new project management methodologies that improved efficiency by 40%"
+
+        ❌ BAD INTEGRATION (keyword tacked on):
+        "Managed projects, demonstrating project management skills"
+        "Weekly meetings, showing stakeholder management"
+        "Improved processes, gaining experience with process improvement"
+
+        STEP 6 - SKILLS SECTION ORGANIZATION:
+        Format as clean, professional categories:
+        Hard Skills: [Key competencies and tools - project management software, CRM systems, analytics tools]
+        Certifications: [Professional certifications like PMP, Agile, Six Sigma]
+        Technical: [Software proficiency if relevant]
+          Example: "Project Management, Data Analysis, Budgeting & Forecasting, Process Improvement, Microsoft Office Suite, Salesforce, Tableau, Asana, Jira, Agile/Scrum Methodologies"
+
+        For generic/professional CVs, soft skills can be included in a separate line if they are core job requirements:
+          Soft Skills: [Leadership, Strategic Thinking, Communication, Stakeholder Management]
+
+        NEVER include:
+        - "(inferred)" labels in visible output
+        - Tools/methodologies with no evidence
+        - Generic buzzwords without supporting experience
+
+        # CRITICAL RULES
+
+
+         ALWAYS:
+        1. Preserve all existing certifications and training
+        2. Preserve all existing tools/software in Skills section
+        3. Use evidence-based integration: 2+ points for direct addition, 1+ for bridging language
+        4. Integrate keywords naturally INTO the action/achievement, not as metadata
+        5. Use strong action verbs: "led", "managed", "coordinated", "implemented", "optimized", "facilitated"
+        6. EMPHASIZE and EXPAND skills and achievements, especially those relevant to job
+        7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
+        8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
+        9. Follow the single-column structure and item positioning of the template cv defined in {GENERIC_LATEX_CV_TEMPLATE}
+
+
+        NEVER:
+        1. Fabricate companies, dates, titles, certifications, or achievements
+        2. Remove existing certifications or professional development
+        3. Remove existing tools/software from skills section
+        4. Use corporate jargon: "leveraged", "utilized", "synergy", "cutting-edge", "robust"
+        5. Add keywords in parentheses like "(PMP)" or "(Stakeholder Management)"
+        6. Tack keywords onto bullet ends like ", demonstrating X skill"
+        7. Add a keyword without at least 1 piece of related or transferable evidence in CV
+        8. Include "(inferred)" or any diagnostic labels in the visible CV output
+        9. Include "N/A", "Not Provided", "None" or blank values like "(GPA: )" - remove the field entirely if data is missing
+        10. Replicate the structural layout, columns, or item positioning of the input CV
+
+
+        # OUTPUT FORMAT
+        {GENERIC_LATEX_CV_TEMPLATE}
+
+        Output raw LaTeX starting with \\documentclass and ending with \\end{{document}}.
+        No markdown code blocks. No explanatory text outside LaTeX.
+        """
+
+    user_message = f"""Tailor this CV for the target job using the evidence-based process.
+
+        MY ACTUAL CV:
+        {user_cv}
+
+        TARGET JOB DESCRIPTION:
+        {job_description}
+
+        EVIDENCE-BASED INTEGRATION EXAMPLES:
+
+        Example 1 - Strong Evidence (2+ pieces):
+        CV shows: "Coordinated 8 concurrent projects across marketing, operations, and technology departments" + "Facilitated stakeholder meetings and presentations to senior leadership"
+        Job requires: "Cross-functional leadership"
+        Evidence: "coordinated projects across departments" + "facilitated stakeholder meetings" = 2 pieces
+        ✅ Integration: "Led cross-functional teams across 8 concurrent projects spanning marketing, operations, and technology, facilitating stakeholder alignment and executive presentations"
+
+        Example 2 - Weak Evidence (1 piece, use bridging):
+        CV shows: "Analyzed business processes and identified opportunities for improvement"
+        Job requires: "Change Management"
+        Evidence: "identified opportunities for improvement" suggests change capability (weak evidence)
+        ✅ Bridge: "Analyzed business processes and championed improvement initiatives 
+        (foundation for organizational change management)"
+        ❌ Don't claim: "Led change management initiatives" or list "Change Management" in skills section
+
+        Example 3 - Related/Transferable (use bridging):
+        CV shows: "Managed a team of 12 professionals, providing mentorship and conducting performance reviews"
+        Job requires: "Talent Development"
+        Evidence: "mentorship" + "performance reviews" is transferable to talent development
+        ✅ Bridge: "Managed and mentored a team of 12 professionals through performance reviews and career development 
+        (directly applicable to talent development programs)"
+
+        Example 4 - Professional Summary (if present in template):
+        If the template includes a Professional Summary section, tailor it to emphasize:
+        - Years of experience in the relevant domain
+        - Top 2-3 competencies that match the job description
+        - Key achievement metrics that align with role requirements
+        Keep it concise (2-4 sentences) and results-focused.
+
+        Example 5 - Certifications & Additional Information:
+        If CV contains professional development, certifications, or volunteer work:
+        - Prioritize certifications that match job requirements
+        - Include relevant professional affiliations
+        - Highlight volunteer leadership roles that demonstrate transferable skills
+        These sections add credibility and demonstrate ongoing professional growth.
+
+        Follow the evidence rules strictly.
+        Output ONLY raw LaTeX. If you cannot follow these rules, refuse the task.
+        """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=4000,
+            temperature=0.1  # Very low for consistency
+        )
+
+        customized_cv = response.choices[0].message.content
+
+        # Clean up any markdown artifacts
+        customized_cv = re.sub(r'^```[a-zA-Z]*\n', '', customized_cv)
+        customized_cv = re.sub(r'\n```$', '', customized_cv)
+        customized_cv = customized_cv.strip()
+
+        # Sanitize LaTeX special characters
+        customized_cv = sanitize_latex(customized_cv)
 
         return {"cv": customized_cv}
     except Exception as e:
