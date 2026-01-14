@@ -18,7 +18,6 @@ from slowapi.errors import RateLimitExceeded
 from auth import get_current_user
 from credits import check_and_use_credit, get_user_credits
 from datetime import datetime
-import tiktoken
 
 import json
 from generations import (
@@ -1084,15 +1083,10 @@ class SaveGenerationRequest(BaseModel):
 async def get_credits(current_user=Depends(get_current_user)):
     user_data = await get_user_credits(current_user.id)
 
-    if user_data['is_subscribed']:
-        return {
-            "remaining": "unlimited",
-            "is_subscribed": True
-        }
-
     return {
-        "remaining": user_data['credits_remaining'],
-        "is_subscribed": False
+        "credits_remaining": user_data['credits_remaining'],
+        "is_subscribed": user_data.get('is_subscribed', False),
+        "subscription_status": user_data.get('subscription_status', 'free')
     }
 
 
