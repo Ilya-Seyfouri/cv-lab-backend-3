@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Request
+from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, Request, status
 import PyPDF2
 import io
 import re
@@ -2899,6 +2899,18 @@ async def generate_cover_letter(request: Request, data: dict, current_user=Depen
     if not job_description or not user_cv:
         raise HTTPException(status_code=400, detail="Both CV and job description are required")
 
+    # Check credits (but don't deduct - CV endpoint already deducted)
+    profile = await get_user_credits(current_user.id)
+    if profile.get('credits_remaining', 0) < 0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail={
+                "error": "no_credits",
+                "message": "You've used all your credits. Purchase more tokens or subscribe to continue.",
+                "credits_remaining": 0
+            }
+        )
+
     # ✅ Initialize job_info with default value FIRST
     job_info = {"role_title": ""}
 
@@ -3014,7 +3026,6 @@ async def generate_cover_letter_pdf(request: dict):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
-
 
 @app.post("/save-generation")
 async def save_generation_endpoint(
