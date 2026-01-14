@@ -18,6 +18,8 @@ from slowapi.errors import RateLimitExceeded
 from auth import get_current_user
 from credits import check_and_use_credit, get_user_credits
 from datetime import datetime
+import tiktoken
+
 import json
 from generations import (
     save_generation,
@@ -39,6 +41,12 @@ logging.basicConfig(
 
 load_dotenv()
 
+
+def log_tokens(endpoint_name: str, response):
+    """Log token usage for API calls"""
+    tokens = response.usage.total_tokens
+    logging.info(f"🔢 {endpoint_name}: {tokens} tokens")
+    return tokens
 
 CORPORATE_LATEX_CV_TEMPLATE = r"""
 \documentclass[letterpaper,11pt]{article}
@@ -151,36 +159,42 @@ CORPORATE_LATEX_CV_TEMPLATE = r"""
   \resumeSubHeadingListStart
     \resumeSubheading
       {University of Newcastle}{Expected Graduation: May 2026}
-      {Bachelor of Economics | Minor Data Science
-      }{Newcastle Upon Tyne}
+      {Bachelor of Economics}
+      {Newcastle Upon Tyne}
   \resumeSubHeadingListEnd
     \resumeItemListStart
-        \resumeItem {\textbf{GPA: 3.78}}
+        \resumeItem {\textbf{GPA: 2:1}}
         \vspace{-7pt}
-        \resumeItem {Courses: Corporate Finance, Financial Accounting, Investments, Statistics, Microeconomics, Modeling and Analytics}
+        \resumeItem {Courses: Linear algebra, Calculus and Analysis, Probability, Statistics, Business Microeconomics, Business Macroeconomics}
     \resumeItemListEnd
     \vspace{-12pt}
 %-----------Experience---------------
 \section{Work Experience}
     \resumeSubHeadingListStart
-                \resumeSubheading{Golden Goose Capital}{Jun 2025 -- Aug 2025}{Summer Analyst}{New York, NY} 
+                \resumeSubheading{Golden Goose Capital}{Jun 2025 -- Aug 2025}{Summer Sales Internship}{} 
                 \resumeItemListStart
-                    \resumeItem{Built a full discounted cash flow (DCF) valuation for three equities, contributing to a \textbf{20\% gain} in the firm's portfolio}
-                    \resumeItem{Benchmarked 15+ companies using comps and industry analysis, reducing screening time by \textbf{30\%}}
-                    \resumeItem{Automated weekly P\&L reporting using Excel VBA, saving \textbf{5+ hours} of analyst time per week}
-                    \resumeItem{Drafted investment memos and presented pitches that expanded coverage into two new sectors}
+                    \resumeItem{Achieved Top Sales Representivative status within the first three weeks, exceeding sales targets.}
+                    \resumeItem{Trained and mentored new interns, making my skills teachable and replaceable for long-term team success.}
+                    \resumeItem{Developed resilience by overcoming rejection and adapting sales strategies to different customer profiles.}
+                    \resumeItem{Strengthened effective communication and the ability to articulate complex ideas clearly to diverse clients.}
+                    \resumeItem{Gained adaptability by responding dynmically to different customer needs and market changes.}
+                    \resumeItem{Played a key role in expanding client campaigns, driving \textbf{20\%} revenue growth through strategic customer acquisition.}
+                    
+                      
                     \resumeItemListEnd
-            \resumeSubheading{Harborview Strategic Advisors}{Jan 2025 -- May 2025}{Corporate Finance Intern}{San Francisco, CA} 
+            \resumeSubheading{Harborview Strategic Advisors}{Jan 2025 -- May 2025}{Global Markets Intern}{} 
                 \resumeItemListStart
-                    \resumeItem{Prepared KPI dashboards and analytical models for senior management decisions}
-                    \resumeItem{Analyzed pricing and customer data, reducing churn by \textbf{8\%}}
-                    \resumeItem{Conducted M\&A market research across fintech and SaaS industries}
+                    \resumeItem{Completed a live simulation as a sales trader working with a group of asset managers.}
+                    \resumeItem{Executed superior bids and offers for buy-side clients, consistently outperforming exchange prices.}
+                    \resumeItem{Effectively managed risk while multitasking and executing multiple client trades.}
+                    \resumeItem{Generated \textbf{\$150,000} in commission and achieved a P&L exceeding \textbf{\$3 million} in under 15 minutes during the simulation.}
                     \resumeItemListEnd
-            \resumeSubheading{Pacific Ridge Technologies}{Aug 2024 -- Dec 2024}{Financial Operations Assistant}{Berkeley, CA}
+                    
+            \resumeSubheading{Pacific Ridge Technologies}{Aug 2024 -- Dec 2024}{Banking Intern}{}
                 \resumeItemListStart
-                    \resumeItem{Improved revenue forecasting accuracy from \textbf{72\% to 91\%} through enhanced variance analysis}
-                    \resumeItem{Streamlined cost-tracking processes, reducing data errors by \textbf{40\%}}
-                    \resumeItem{Prepared board-ready financial reports summarizing performance and milestones}
+                    \resumeItem{Analysed transaction data to develop a summary of debt capital markets (DBM) activity.}
+                    \resumeItem{Matched financial products with various clients}
+                    \resumeItem{Defined the strategic rationale for M&A and filtered target}
                     \resumeItemListEnd
     \resumeSubHeadingListEnd
     \vspace{-12pt}
@@ -189,31 +203,24 @@ CORPORATE_LATEX_CV_TEMPLATE = r"""
 \resumeSubHeadingListStart
 
     \resumeSubheading
-      {Investment Banking Club}{Aug 2025 -- Present}
-      {Vice President of Finance}{Berkeley, CA}
-    \resumeItemListStart
-        \resumeItem{Managed \textbf{over \$10,000} in annual finances, producing a \textbf{\$2,000 surplus}.}
-        \resumeItem{Led finance boot camps with \textbf{120+ attendees}, increasing internship placements by \textbf{35\%}.}
-        \resumeItem{Implemented a digital workflow that reduced reimbursement processing time by \textbf{50\%}.}
-    \resumeItemListEnd
+  {Newcastle Investment Society}{Aug 2025 -- Present}
+  {Vice President}{}
+\resumeItemListStart
+  \resumeItem{Led and coordinated workshops on equity valuation, portfolio construction, and macroeconomic analysis for society members}
+  \resumeItem{Organised speaker events and training sessions with industry professionals to improve members’ practical investment skills}
+  \resumeItem{Mentored junior members in financial markets fundamentals and investment research techniques}
+\resumeItemListEnd
 
     \resumeSubheading
-      {Berkeley Business Society}{Jan 2024 -- May 2024}
-      {Director of Professional Development}{Berkeley, CA}
+      {Akuna Capital}{Jan 2024 -- May 2024}
+      {101 Course}{}
     \resumeItemListStart
-        \resumeItem{Organized 15+ recruiting workshops and networking events, boosting engagement by \textbf{40\%}.}
-        \resumeItem{Developed resume + interview curriculum used by \textbf{200+ students}.}
-        \resumeItem{Managed a 6-person team to design case studies and training programs.}
+        \resumeItem{Gained foundational knowledge of options trading, including calls,puts and market-making strategies.}
+        \resumeItem{Participated in trading quiz's, applying theoretical knowledge to real-world scenarios.}
+        \resumeItem{Engaged in real life trading simulations for apple, equities, FX and commodities.}
     \resumeItemListEnd
 
-    \resumeSubheading
-      {Cal Sports Analytics Group}{Aug 2023 -- Dec 2023}
-      {Project Lead}{Berkeley, CA}
-    \resumeItemListStart
-        \resumeItem{Led a 5-person analytics team, improving model accuracy by \textbf{18\%}.}
-        \resumeItem{Created dashboards used by 500+ students in competitions.}
-        \resumeItem{Raised \$1,200 to fund software and competition expenses.}
-    \resumeItemListEnd
+   
 
 \resumeSubHeadingListEnd
 \vspace{-12pt}
@@ -221,9 +228,9 @@ CORPORATE_LATEX_CV_TEMPLATE = r"""
 \section{Technical Skills}
  \begin{itemize}[leftmargin=0.15in, label={}]
     \small{\item{   
-     \textbf{Languages}{: Conversational Mandarin; Basic Spanish} \\[1mm]
-     \textbf{Technical}{: Excel (VLOOKUP, PivotTables, Macros), PowerPoint, SQL, Python (NumPy, pandas), Bloomberg Terminal} \\[1mm]
-     \textbf{Interests}{: YouTube content creation, yoga (certified instructor), international travel (22 countries), stock pitching/}
+     \textbf{Soft}{: Collaboration, Communication, Analytical Thinking, Organisation, Problem Solving, Teamwork, Resilience, Adapatability} \\[1mm]
+     \textbf{Technical}}{: Python, R Stdui, Microsoft Excel, Microsoft Word, Microsoft PowerPoint} \\[1mm]
+     \textbf{Interests}}{: YouTube content creation, yoga (certified instructor), international travel (22 countries), Music (Learning Guitar)}
      \\ [1mm]
     }}
  \end{itemize}
@@ -236,8 +243,6 @@ CORPORATE_LATEX_CV_TEMPLATE = r"""
 
 
 \end{document}
-
-
 
 """
 
@@ -431,6 +436,402 @@ TECH_LATEX_CV_TEMPLATE = r"""
 
 \end{document}
 
+"""
+
+
+
+LAW_LATEX_CV_TEMPLATE = r"""
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+\usepackage[margin=1.4cm]{geometry}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.15in}
+ \addtolength{\textwidth}{0.3in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}\vspace{0pt}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Large \scshape Sarah Martinez} \\[2mm]
+    \footnotesize \raisebox{-0.1\height}
+    \faPhone\ \underline{07715278067} ~ 
+    {\faEnvelope\  \underline{sarah.martinez@email.com}} ~ 
+    {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/sarahmartinez}{linkedin.com/in/sarahmartinez}}  ~
+    \vspace{-8pt}
+\end{center}
+
+
+%-----------PROFESSIONAL SUMMARY-----------
+\section{Professional Summary}
+\small{
+A driven, inquisitive, and ambitious law graduate with First-Class Honours, aiming to begin a career within the legal field. I bring a keen attention to detail and strong research skills from assisting lawyers in conducting legal research and drafting key contract documents in a fast-paced environment
+}
+\vspace{-4pt}
+
+
+  %-----------EDUCATION-----------
+\section{Education} \\[1mm]
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {SOAS University of London}{Graduated: May 2019}
+      {LLB Law - First Class Honours
+      }{London}
+  \resumeSubHeadingListEnd
+    \resumeItemListStart
+        \vspace{-7pt}
+        \resumeItem {Courses: Contract Law, Advance Administrative Law, Property Law, Law Terror, State and Power}
+    \resumeItemListEnd
+    \vspace{-8pt}
+
+
+%-----------Experience---------------
+\section{Work Experience}
+    \resumeSubHeadingListStart
+                \resumeSubheading{Milbank LLP}{Jan 2022 -- Present}{Legal Internship}{London} 
+                \resumeItemListStart
+                    \resumeItem{Completed a tax case study prepared by a Havard Law Professor, where I provided recommendations on settlement actions, utilising analytical skills to undertake due diligence, which informed my reccomendations}
+                    \resumeItem{Demostrated communication skills in presented my case analysis, findings and recommendations}
+                    
+                    \resumeItemListEnd
+            \resumeSubheading{Paradigm Solicitors}{Jun 2020 -- Dec 2021}{Legal Internship}{London} 
+                \resumeItemListStart
+                    \resumeItem{Interned across multiple departments including conveyancing, immigration, family and property law where I participated in client meetings by taking detailed meeting notes, providing summaries for lawyers, and undertaking legal research on findings to support lawyers with the next steps.}
+                    \resumeItem{Reviewed and drafted legal documents, such as leases and contracts, utilising keen attention to detail to accurately represent client interests.}
+                    \resumeItemListEnd
+            \resumeSubheading{Nova Solicitors}{May 2019 -- May 2020}{Legal Internship}{London}
+                \resumeItemListStart
+                    \resumeItem{Delivered thorough case summaries for client cases under demanding time constraints, showcasing efficient organisation and an unwavering attention to detail.}
+                    \resumeItem{Conducted client comms on behalf of the company, developing my communication skills in taking client calls to gather key documentation and provide updates on ongoing cases.}
+                    \resumeItemListEnd
+                    
+    \resumeSubHeadingListEnd
+    \vspace{-12pt}
+
+
+    
+  %-----------SKILLS-----------
+\section{Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{   
+        \textbf{Hard Skills}{: Word, PowerPoint, Excel} \\[1mm]
+        \textbf{Soft Skills}{: Legal Research, Attention to Detail, Time Management, Problem Solving} \\[1mm]
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+ \vspace{3pt}
+\vspace{10pt}
+
+
+%-----------ADDITIONAL INFORMATION-----------
+\section{Extracurricular Activities} 
+    \vspace{-3pt}
+    \resumeSubHeadingListStart
+                   \resumeProjectHeading
+            {\textbf{{Founder - Clothing Boutique}}}
+            
+            \\[5mm]
+          \resumeItemListStart
+            \resumeItem{Leveraged strong multitasking skills to manage the end-to-end daily operations of my own clothing brand, including supplier coordination, client dress sourcing, and expense management.}
+        
+          \resumeItemListEnd
+          \resumeSubHeadingListEnd
+ \vspace{-12pt}
+
+    
+
+\vspace{-15pt}
+
+
+
+
+
+\end{document}
+
+
+
+
+
+"""
+
+MEDICAL_LATEX_CV_TEMPLATE = r"""
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\setlength{\multicolsep}{-3.0pt}
+\setlength{\columnsep}{-1pt}
+\input{glyphtounicode}
+\usepackage[margin=1.4cm]{geometry}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Adjust margins
+\addtolength{\oddsidemargin}{-0.15in}
+ \addtolength{\textwidth}{0.3in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    {#1 \vspace{0pt}}
+  }
+}
+
+\newcommand{\classesList}[4]{
+    \item\small{
+        {#1 #2 #3 #4 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-2pt}\item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{\small #2} \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubSubheading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & \textbf{\small #2}\\
+    \end{tabular*}\vspace{-7pt}
+}
+
+\newcommand{\resumeSubItem}[1]{\resumeItem{#1}\vspace{-4pt}}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\tiny$\bullet$}}$}
+\renewcommand\labelitemii{$\vcenter{\hbox{\tiny$\bullet$}}$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.0in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}\vspace{0pt}
+\newcommand{\resumeItemListStart}{\begin{itemize}}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Large \scshape Sarah Martinez} \\[2mm]
+    \footnotesize \raisebox{-0.1\height}
+    \faPhone\ \underline{07715278067} ~ 
+    {\faEnvelope\  \underline{sarah.martinez@email.com}} ~ 
+    {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/sarahmartinez}{linkedin.com/in/sarahmartinez}}  ~
+    \vspace{-8pt}
+\end{center}
+
+
+%-----------PROFESSIONAL SUMMARY-----------
+\section{Professional Summary}
+\small{
+An innovative biomedical science graduate with significant internship experience and a strong background in data analysis and interpretation. Specializing in microbiology with demonstrated expertise in optimizing data/sample collection procedures to improve accuracy. Experienced in conducting experiments and writing reports.
+}
+\vspace{-4pt}
+
+
+  %-----------EDUCATION-----------
+\section{Education} \\[1mm]
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Newcastle University}{Graduated: May 2019}
+      {BSc Biomedical Science - 2:1
+      }{Newcastle}
+  \resumeSubHeadingListEnd
+    \resumeItemListStart
+        \vspace{-7pt}
+        \resumeItem {Eukaroytic Gene Expression, Cellular Immunology, Medical Biotechnology, Bioethic, Epidemiology, Microbioata and Pathogens}
+    \resumeItemListEnd
+    \vspace{-8pt}
+
+
+%-----------Experience---------------
+\section{Work Experience}
+    \resumeSubHeadingListStart
+                \resumeSubheading{Sampson Laboratories}{Jan 2022 -- Present}{Research Intern}{Newcastle} 
+                \resumeItemListStart
+                    \resumeItem{Completed a 3-month research internship in the R&D department}
+                    \resumeItem{Analysed data using statistical methods and programming code, R and SAS}
+                    \resumeItem{Contributed to the development and optimisation of experimental protocols}
+                    \resumeItem{Wrote scientific reports, including experimental design, results and conclusions.}
+                    \resumeItem{Conducted in vitro experiments to research and evaluate the efficacy of novel cell-based therapies for cancer treatment.}
+                    
+                    \resumeItemListEnd
+            \resumeSubheading{NHS Trust}{Jun 2020 -- Dec 2021}{Clinical Research Intern}{London} 
+                \resumeItemListStart
+                    \resumeItem{Conducted diagnostic tests, including PCR and ELISA, for infectious diseases.}
+                    \resumeItem{Assisted with the analysis of clinical data and interpretation of laboratory results.}
+                    \resumeItem{Maintained laboratory records, including test results and specimen tracking}
+                     \resumeItem{Diagnosed and treated several cases of antibiotic - resistant infections.}
+                    \resumeItemListEnd
+            
+                    
+    \resumeSubHeadingListEnd
+    \vspace{-12pt}
+
+
+    
+  %-----------SKILLS-----------
+\section{Core Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{   
+        {Data Analysis Interpretation, Laboratory Techniques, Scientific Writing, Cellular Biology, Project Management, Data Analysis & Modelling}} \\[1mm]
+        
+    }}
+ \end{itemize}
+ \vspace{-16pt}
+ \vspace{3pt}
+\vspace{10pt}
+
+
+%-----------ADDITIONAL INFORMATION-----------
+\section{Extracurricular Activities} 
+    \vspace{-3pt}
+    \resumeSubHeadingListStart
+                   \resumeProjectHeading
+            {\textbf{{Founder - Clothing Boutique}}}
+            
+            \\[5mm]
+          \resumeItemListStart
+            \resumeItem{Leveraged strong multitasking skills to manage the end-to-end daily operations of my own clothing brand, including supplier coordination, client dress sourcing, and expense management.}
+        
+          \resumeItemListEnd
+          \resumeSubHeadingListEnd
+ \vspace{-12pt}
+
+    
+
+\vspace{-15pt}
+
+
+
+
+
+\end{document}
 """
 
 
@@ -829,7 +1230,7 @@ Return only valid JSON."""
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4.1",  # Fast and cost-effective
+            model="gpt-4.1-mini",  # Fast and cost-effective
             temperature=0,  # Deterministic output
             messages=[
                 {"role": "system", "content": system_message},
@@ -838,7 +1239,10 @@ Return only valid JSON."""
             max_tokens=2000
         )
 
+
         json_cv = response.choices[0].message.content
+        log_tokens("parse_cv", response)  # ← ADD THIS LINE
+
         logging.info("CV parsed successfully")
         print(json_cv)
 
@@ -922,7 +1326,7 @@ Return only valid JSON."""
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4.1",  # Fast and cost-effective
+            model="gpt-4.1-mini",  # Fast and cost-effective
             temperature=0,  # Deterministic output
             messages=[
                 {"role": "system", "content": system_message},
@@ -932,6 +1336,8 @@ Return only valid JSON."""
         )
 
         json_job_desc = response.choices[0].message.content
+        log_tokens("extract_job", response)  # ← ADD THIS LINE
+
         print(json_job_desc)
         logging.info("Job description extracted successfully")
 
@@ -1100,6 +1506,8 @@ async def analyse_skills(json_job_desc, json_cv):
         )
 
         skills_report = response.choices[0].message.content
+        log_tokens("analyse_skills", response)  # ← ADD THIS LINE
+
         logging.info("Skills analysis completed successfully")
         print(type(skills_report))
 
@@ -1300,6 +1708,7 @@ async def generate_tech_cv(request: Request, data: dict, current_user=Depends(ge
             max_tokens=4000,
             temperature=0.1  # Very low for consistency
         )
+        log_tokens("generate_tech_cv", response)  # ← ADD THIS LINE
 
         customized_cv = response.choices[0].message.content
 
@@ -1312,6 +1721,400 @@ async def generate_tech_cv(request: Request, data: dict, current_user=Depends(ge
         customized_cv = sanitize_latex(customized_cv)
 
 
+
+        return {"cv": customized_cv}
+    except Exception as e:
+        print(f"Error in generate-cv: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/generate-medical-cv")
+@limiter.limit("25/minute")
+async def generate_medical_cv(request: Request, data: dict, current_user=Depends(get_current_user)):
+    """
+    Generates a tailored CV with intelligent section reordering and terminology matching.
+    Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
+    """
+
+    # ✅ ADD LOGGING HERE
+    print("=== GENERATE CV ENDPOINT HIT ===")
+    print(f"User ID: {current_user.id}")
+    print(f"User Email: {current_user.email}")
+
+    try:
+        # Log before credit check
+        print("Checking credits...")
+        await check_and_use_credit(current_user.id)
+        print("✅ Credits check passed!")
+
+    except HTTPException as e:
+        print(f"❌ Credits check FAILED: {e.detail}")
+        raise
+    job_description = data.get("job_description", "")
+    user_cv = data.get("user_cv", "")
+
+    if not job_description:
+        raise HTTPException(status_code=400, detail="Job description is required")
+
+    if not user_cv or not user_cv.strip():
+        raise HTTPException(status_code=400, detail="CV is required for tailoring")
+
+    # SYSTEM MESSAGE: Identity + Instructions + Rules
+    # SYSTEM MESSAGE: Identity + Instructions + Rules
+    system_message = f"""You are an expert CV tailoring specialist for medical sciences roles.
+
+    # YOUR IDENTITY
+    Transform existing CVs to maximize relevance for specific jobs while maintaining 
+    complete authenticity and professional presentation.
+
+    # YOUR PROCESS (Structured Chain-of-Thought)
+
+    STEP 1 - JOB KEYWORD EXTRACTION:
+    Extract and categorize from job description:
+    - Must-Have Keywords: Scientific skills/techniques mentioned 3+ times or in requirements section
+      (e.g., "PCR", "ELISA", "Data analysis", "In vitro experiments", "Clinical research")
+    - Important Keywords: Mentioned 2 times or in "nice to have"
+    - Role Context: Level (intern/junior/research assistant), lab environment, responsibilities
+    - Soft Skills: Communication, leadership, collaboration, analytical abilities
+
+    STEP 2 - CV EVIDENCE ANALYSIS:
+    For each Must-Have keyword, identify:
+    - EXPLICIT: Keyword appears verbatim (e.g., "PCR" in experience or skills)
+    - IMPLICIT-STRONG: 2+ bullets show clear evidence
+      Example: "Conducted diagnostic tests" + "analysed laboratory results" = Clinical diagnostics
+    - IMPLICIT with WEAK evidence: 1 bullet or indirect connection
+    - RELATED/TRANSFERABLE: Adjacent technique, relevant coursework, or methodological foundation
+      Example: Job needs "ELISA" → CV has "Immunology laboratory experiments"
+    - ABSENT: No evidence or logical connection at all
+
+
+    STEP 3 - EVIDENCE-BASED INTEGRATION RULES:
+    - EXPLICIT keywords → Emphasize and expand naturally in relevant bullets
+    - IMPLICIT with STRONG evidence → Add keyword using job's terminology
+    - IMPLICIT with WEAK evidence → Reframe using bridging language
+    - RELATED/TRANSFERABLE → Emphasize the connection in context using bridging language
+    - ABSENT keywords → DO NOT add
+
+    STEP 4 - CONTENT PRESERVATION:
+    BEFORE making any changes, identify:
+    - Existing relevant coursework (Immunology, Microbiology, Epidemiology, etc.)
+    - Laboratory techniques/tools already listed (PCR, ELISA, R, SAS, etc.)
+    - Concrete experimental results, analyses, and reports
+    Rule: NEVER remove these. If they match job keywords, emphasize them more and move to top bullets.
+
+    STEP 5 - NATURAL REWRITING:
+    Rewrite each bullet so that keywords are naturally integrated into the action (not added as afterthoughts).
+
+    ✅ GOOD INTEGRATION (keyword is the subject/action):
+    "Analysed data" → "Analysed experimental and clinical data using statistical methods to support research findings"
+    "Conducted experiments" → "Conducted in vitro experiments to evaluate the efficacy of cell-based therapies"
+    "Wrote reports" → "Authored structured scientific reports detailing experimental design, results, and conclusions"
+
+    ❌ BAD INTEGRATION (keyword tacked on):
+    "Analysed data, demonstrating data analysis skills"
+    "Conducted experiments, showing laboratory experience"
+    "Wrote reports, gaining experience in scientific writing"
+
+    STEP 6 - SKILLS SECTION ORGANIZATION:
+    Format as clean, professional categories:
+    Laboratory Techniques: [All mentioned in original cv, put job-required first]
+    Data Analysis & Tools: [All mentioned in original cv]
+    Scientific Competencies: [Include if strong evidence exists]
+      Example: "PCR, ELISA, In vitro experimentation, Data analysis, Scientific writing"
+
+    NEVER include:
+    - "(inferred)" labels in visible output
+    - Soft skills like "collaboration" or "communication" (these go in experience bullets)
+    - Techniques or methods with no evidence
+
+    # CRITICAL RULES
+
+
+     ALWAYS:
+    1. Preserve all existing relevant coursework in Education section
+    2. Preserve all existing techniques/tools in Skills section
+    3. Use evidence-based integration: 2+ points for direct addition, 1+ for bridging language
+    4. Integrate keywords naturally INTO the action/achievement, not as metadata
+    5. Use strong action verbs: "analysed", "conducted", "designed", "evaluated", "authored"
+    6. EMPHASIZE and EXPAND skills and achievements, especially those relevant to job.
+    7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
+    8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
+    9. Follow the single-column structure and item positioning of the template cv defined in {MEDICAL_LATEX_CV_TEMPLATE}.
+
+
+    NEVER:
+    1. Fabricate institutions, experiments, results, techniques, or achievements
+    2. Remove existing relevant coursework from Education section
+    3. Remove existing techniques/tools from skills section
+    4. Use corporate jargon: "leveraged", "utilized", "synergy", "cutting-edge", "robust"
+    5. Add keywords in parentheses like "(PCR)" or "(ELISA)"
+    6. Tack keywords onto bullet ends like ", demonstrating X skill"
+    7. Add a keyword without at least 1 piece of related or transferable evidence in CV
+    8. Include "(inferred)" or any diagnostic labels in the visible CV output
+    9. Include "N/A", "Not Provided", "None" or blank values like "(Grade: )" - remove the field entirely if data is missing
+    10. Replicate the structural layout, columns, or item positioning of the input CV.
+
+
+    # OUTPUT FORMAT
+    {MEDICAL_LATEX_CV_TEMPLATE}
+
+    Output raw LaTeX starting with \\documentclass and ending with \\end{{document}}.
+    No markdown code blocks. No explanatory text outside LaTeX.
+    """
+
+    user_message = f"""Tailor this CV for the target job using the evidence-based process.
+
+    MY ACTUAL CV:
+    {user_cv}
+
+    TARGET JOB DESCRIPTION:
+    {job_description}
+
+    EVIDENCE-BASED INTEGRATION EXAMPLES:
+
+    Example 1 - Strong Evidence (2+ pieces):
+    CV shows: "Conducted diagnostic laboratory tests and analysed clinical samples, 
+    recording results and supporting ongoing studies"
+    Job requires: "Clinical diagnostics"
+    Evidence: "diagnostic tests" + "analysed clinical samples" = 2 pieces
+    ✅ Integration: "Conducted clinical diagnostic testing and analysed patient samples 
+    to support accurate interpretation of laboratory results"
+
+    Example 2 - Weak Evidence (1 piece, use bridging):
+    CV shows: "Completed laboratory coursework involving immunology experiments"
+    Job requires: "ELISA"
+    Evidence: Immunology lab exposure suggests assay familiarity (weak evidence)
+    ✅ Bridge: "Applied immunology laboratory techniques with foundational exposure 
+    relevant to ELISA-based assays"
+    ❌ Don't claim: "Performed ELISA independently" or list "ELISA" without evidence
+
+    Example 3 - Related/Transferable (use bridging):
+    CV shows: "Analysed experimental data using R"
+    Job requires: "SAS"
+    Evidence: R and SAS are transferable statistical tools
+    ✅ Bridge: "Analysed experimental datasets using R (directly applicable to SAS-based statistical analysis)"
+
+    Follow the evidence rules strictly.
+    Output ONLY raw LaTeX. If you cannot follow these rules, refuse the task.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=4000,
+            temperature=0.1  # Very low for consistency
+        )
+        log_tokens("generate_tech_cv", response)  # ← ADD THIS LINE
+
+        customized_cv = response.choices[0].message.content
+
+        # Clean up any markdown artifacts
+        customized_cv = re.sub(r'^```[a-zA-Z]*\n', '', customized_cv)
+        customized_cv = re.sub(r'\n```$', '', customized_cv)
+        customized_cv = customized_cv.strip()
+
+        # Sanitize LaTeX special characters
+        customized_cv = sanitize_latex(customized_cv)
+
+        return {"cv": customized_cv}
+    except Exception as e:
+        print(f"Error in generate-cv: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/generate-law-cv")
+@limiter.limit("25/minute")
+async def generate_law_cv(request: Request, data: dict, current_user=Depends(get_current_user)):
+    """
+    Generates a tailored CV with intelligent section reordering and terminology matching.
+    Implements: Chain-of-Thought, Gap Analysis, Constraint Enforcement.
+    """
+
+    # ✅ ADD LOGGING HERE
+    print("=== GENERATE CV ENDPOINT HIT ===")
+    print(f"User ID: {current_user.id}")
+    print(f"User Email: {current_user.email}")
+
+    try:
+        # Log before credit check
+        print("Checking credits...")
+        await check_and_use_credit(current_user.id)
+        print("✅ Credits check passed!")
+
+    except HTTPException as e:
+        print(f"❌ Credits check FAILED: {e.detail}")
+        raise
+    job_description = data.get("job_description", "")
+    user_cv = data.get("user_cv", "")
+
+    if not job_description:
+        raise HTTPException(status_code=400, detail="Job description is required")
+
+    if not user_cv or not user_cv.strip():
+        raise HTTPException(status_code=400, detail="CV is required for tailoring")
+
+    # SYSTEM MESSAGE: Identity + Instructions + Rules
+    system_message = f"""You are an expert CV tailoring specialist for law roles.
+
+    # YOUR IDENTITY
+    Transform existing CVs to maximize relevance for specific jobs while maintaining 
+    complete authenticity and professional presentation.
+
+    # YOUR PROCESS (Structured Chain-of-Thought)
+
+    STEP 1 - JOB KEYWORD EXTRACTION:
+    Extract and categorize from job description:
+    - Must-Have Keywords: Legal skills/practice areas mentioned 3+ times or in requirements section
+      (e.g., "Legal research", "Contract drafting", "Due diligence", "Case analysis")
+    - Important Keywords: Mentioned 2 times or in "nice to have"
+    - Role Context: Level (vacation scheme/paralegal/trainee solicitor), team culture, responsibilities
+    - Soft Skills: Communication, leadership, collaboration, analytical abilities
+
+    STEP 2 - CV EVIDENCE ANALYSIS:
+    For each Must-Have keyword, identify:
+    - EXPLICIT: Keyword appears verbatim (e.g., "Legal research" in skills list)
+    - IMPLICIT-STRONG: 2+ bullets show clear evidence
+      Example: "Reviewed case law" + "Prepared legal memoranda" = Legal research
+    - IMPLICIT with WEAK evidence: 1 bullet or indirect connection
+    - RELATED/TRANSFERABLE: Adjacent skill, relevant coursework, or foundational knowledge
+      Example: Job needs "Contract drafting" → CV has "Reviewed leases and agreements"
+    - ABSENT: No evidence or logical connection at all
+
+
+    STEP 3 - EVIDENCE-BASED INTEGRATION RULES:
+    - EXPLICIT keywords → Emphasize and expand naturally in relevant bullets
+    - IMPLICIT with STRONG evidence → Add keyword using job's terminology
+    - IMPLICIT with WEAK evidence → Reframe using bridging language
+    - RELATED/TRANSFERABLE → Emphasize the connection in context using bridging language
+    - ABSENT keywords → DO NOT add
+
+    STEP 4 - CONTENT PRESERVATION:
+    BEFORE making any changes, identify:
+    - Existing relevant coursework (Contract Law, Property Law, Administrative Law, etc.)
+    - Tools/skills already listed (Legal research, drafting, MS Word, etc.)
+    - Concrete metrics and achievements
+    Rule: NEVER remove these. If they match job keywords, emphasize them more and move to top bullets.
+
+    STEP 5 - NATURAL REWRITING:
+    Rewrite each bullet so that keywords are naturally integrated into the action (not added as afterthoughts).
+
+    ✅ GOOD INTEGRATION (keyword is the subject/action):
+    "Reviewed case materials" → "Conducted detailed legal research and case analysis to support solicitors"
+    "Drafted notes" → "Prepared structured legal memoranda and case summaries"
+    "Client meetings" → "Attended client meetings and produced accurate attendance notes"
+
+    ❌ BAD INTEGRATION (keyword tacked on):
+    "Reviewed case materials, demonstrating legal research skills"
+    "Drafted notes, showing attention to detail"
+    "Client meetings, gaining experience in legal practice"
+
+    STEP 6 - SKILLS SECTION ORGANIZATION:
+    Format as clean, professional categories:
+    Legal Skills: [All mentioned in original cv, put job-required first]
+    Practice Areas: [All mentioned in original cv]
+    Professional Tools: [Include if strong evidence exists]
+      Example: "Legal research, Contract drafting, Case analysis, Due diligence"
+
+    NEVER include:
+    - "(inferred)" labels in visible output
+    - Soft skills like "collaboration" or "communication" (these go in experience bullets)
+    - Legal skills with no evidence
+
+    # CRITICAL RULES
+
+    ALWAYS:
+    1. Preserve all existing relevant coursework in Education section
+    2. Preserve all existing skills/tools in Skills section
+    3. Use evidence-based integration: 2+ points for direct addition, 1+ for bridging language
+    4. Integrate keywords naturally INTO the action/achievement, not as metadata
+    5. Use strong action verbs: "drafted", "reviewed", "analysed", "researched", "prepared"
+    6. EMPHASIZE and EXPAND skills and achievements, especially those relevant to job.
+    7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
+    8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
+    9. Follow the single-column structure and item positioning of the template cv defined in {LAW_LATEX_CV_TEMPLATE}.
+
+
+    NEVER:
+    1. Fabricate companies, dates, titles, skills, or achievements
+    2. Remove existing relevant coursework from Education section
+    3. Remove existing skills from skills section
+    4. Use corporate jargon: "leveraged", "utilized", "synergy", "cutting-edge", "robust"
+    5. Add keywords in parentheses like "(Legal research)" or "(Due diligence)"
+    6. Tack keywords onto bullet ends like ", demonstrating X skill"
+    7. Add a keyword without at least 1 piece of related or transferable evidence in CV
+    8. Include "(inferred)" or any diagnostic labels in the visible CV output
+    9. Include "N/A", "Not Provided", "None" or blank values like "(GPA: )" - remove the field entirely if data is missing
+    10. Replicate the structural layout, columns, or item positioning of the input CV.
+
+
+    # OUTPUT FORMAT
+    {LAW_LATEX_CV_TEMPLATE}
+
+    Output raw LaTeX starting with \\documentclass and ending with \\end{{document}}.
+    No markdown code blocks. No explanatory text outside LaTeX.
+    """
+
+    user_message = f"""Tailor this CV for the target job using the evidence-based process.
+
+    MY ACTUAL CV:
+    {user_cv}
+
+    TARGET JOB DESCRIPTION:
+    {job_description}
+
+    EVIDENCE-BASED INTEGRATION EXAMPLES:
+
+    Example 1 - Strong Evidence (2+ pieces):
+    CV shows: "Attended client meetings and prepared detailed case notes, 
+    summarising findings and next steps for solicitors"
+    Job requires: "Legal research"
+    Evidence: "case notes" + "summarising findings" = 2 pieces
+    ✅ Integration: "Conducted legal research and prepared structured case summaries 
+    to support solicitors with ongoing matters"
+
+    Example 2 - Weak Evidence (1 piece, use bridging):
+    CV shows: "Reviewed contracts for accuracy and consistency"
+    Job requires: "Contract drafting"
+    Evidence: "reviewed contracts" suggests drafting exposure (weak evidence)
+    ✅ Bridge: "Reviewed and supported contract drafting processes, ensuring accuracy 
+    and consistency in legal documentation"
+    ❌ Don't claim: "Drafted contracts independently" or list "Contract drafting" without evidence
+
+    Example 3 - Related/Transferable (use bridging):
+    CV shows: "Completed coursework in Contract Law"
+    Job requires: "Commercial contracts"
+    Evidence: Academic foundation is transferable
+    ✅ Bridge: "Applied Contract Law principles from academic coursework to support 
+    commercial contract analysis"
+
+    Follow the evidence rules strictly.
+    Output ONLY raw LaTeX. If you cannot follow these rules, refuse the task.
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4.1",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=4000,
+            temperature=0.1  # Very low for consistency
+        )
+
+        customized_cv = response.choices[0].message.content
+
+        # Clean up any markdown artifacts
+        customized_cv = re.sub(r'^```[a-zA-Z]*\n', '', customized_cv)
+        customized_cv = re.sub(r'\n```$', '', customized_cv)
+        customized_cv = customized_cv.strip()
+
+        # Sanitize LaTeX special characters
+        customized_cv = sanitize_latex(customized_cv)
 
         return {"cv": customized_cv}
     except Exception as e:
@@ -2084,6 +2887,8 @@ Generate the cover letter."""
         )
 
         cover_letter = response.choices[0].message.content
+        log_tokens("generate_cover_letter", response)  # ← ADD THIS LINE
+
         return {"cover_letter": cover_letter}
 
 
