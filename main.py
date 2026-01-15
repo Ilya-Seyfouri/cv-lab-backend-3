@@ -228,7 +228,7 @@ CORPORATE_LATEX_CV_TEMPLATE = r"""
  \begin{itemize}[leftmargin=0.15in, label={}]
     \small{\item{   
      \textbf{Soft}{: Collaboration, Communication, Analytical Thinking, Organisation, Problem Solving, Teamwork, Resilience, Adapatability} \\[1mm]
-     \textbf{Technical}}{: Python, R Stdui, Microsoft Excel, Microsoft Word, Microsoft PowerPoint} \\[1mm]
+     \textbf{Technical}}{: Python, R Studio, Microsoft Excel, Microsoft Word, Microsoft PowerPoint} \\[1mm]
      \textbf{Interests}}{: YouTube content creation, yoga (certified instructor), international travel (22 countries), Music (Learning Guitar)}
      \\ [1mm]
     }}
@@ -242,6 +242,7 @@ CORPORATE_LATEX_CV_TEMPLATE = r"""
 
 
 \end{document}
+
 
 """
 
@@ -349,7 +350,7 @@ TECH_LATEX_CV_TEMPLATE = r"""
   \resumeSubHeadingListStart
     \resumeSubheading
       {[UNIVERSITY]}{Expected Graduation: [GRAD_DATE]}
-      {[DEGREE] | Minor [MINOR]
+      {[DEGREE]
       }{[LOCATION]}
   \resumeSubHeadingListEnd
     \resumeItemListStart
@@ -360,19 +361,19 @@ TECH_LATEX_CV_TEMPLATE = r"""
 %-----------Experience---------------
 \section{Work Experience}
     \resumeSubHeadingListStart
-        \resumeSubheading{[COMPANY_1]}{[START_DATE_1] -- [END_DATE_1]}{[JOB_TITLE_1]}{[LOCATION_1]} 
+        \resumeSubheading{[COMPANY_1]}{[START_DATE_1] -- [END_DATE_1]}{[JOB_TITLE_1]}{}
             \resumeItemListStart
                 \resumeItem{[ACHIEVEMENT_1_1]}
                 \resumeItem{[ACHIEVEMENT_1_2]}
                 \resumeItem{[ACHIEVEMENT_1_3]}
             \resumeItemListEnd
-        \resumeSubheading{[COMPANY_2]}{[START_DATE_2] -- [END_DATE_2]}{[JOB_TITLE_2]}{[LOCATION_2]} 
+        \resumeSubheading{[COMPANY_2]}{[START_DATE_2] -- [END_DATE_2]}{[JOB_TITLE_2]}{}
             \resumeItemListStart
                 \resumeItem{[ACHIEVEMENT_2_1]}
                 \resumeItem{[ACHIEVEMENT_2_2]}
                 \resumeItem{[ACHIEVEMENT_2_3]}
             \resumeItemListEnd
-        \resumeSubheading{[COMPANY_3]}{[START_DATE_3] -- [END_DATE_3]}{[JOB_TITLE_3]}{[LOCATION_3]}
+        \resumeSubheading{[COMPANY_3]}{[START_DATE_3] -- [END_DATE_3]}{[JOB_TITLE_3]}{}
             \resumeItemListStart
                 \resumeItem{[ACHIEVEMENT_3_1]}
                 \resumeItem{[ACHIEVEMENT_3_2]}
@@ -382,8 +383,10 @@ TECH_LATEX_CV_TEMPLATE = r"""
 %-----------PROJECTS-----------
 \section{Projects} 
     \resumeSubHeadingListStart
+
         \resumeProjectHeading
-            {\textbf{{[PROJECT_1_NAME]}} $|$ \emph{\href{[PROJECT_1_URL]}{Website}{ $|$ }\href{[PROJECT_1_SOURCE]}{Source Code}}}{[PROJECT_1_TECH]}
+            {{\textbf{[PROJECT_1_NAME]}[PROJECT_1_LINKS]}}
+            {{[PROJECT_1_TECH]}}
             \\[5mm]
             \resumeItemListStart
                 \resumeItem{[PROJECT_1_DESC_1]}
@@ -392,7 +395,8 @@ TECH_LATEX_CV_TEMPLATE = r"""
             \vspace{-10pt}
 
         \resumeProjectHeading
-            {\textbf{{[PROJECT_2_NAME]}} $|$ \emph{\href{[PROJECT_2_URL]}{Website}}}{[PROJECT_2_TECH]}
+            {{\textbf{[PROJECT_2_NAME]}[PROJECT_2_LINKS]}}
+            {{[PROJECT_2_TECH]}}
             \\[5mm]
             \resumeItemListStart
                 \resumeItem{[PROJECT_2_DESC_1]}
@@ -400,12 +404,15 @@ TECH_LATEX_CV_TEMPLATE = r"""
             \vspace{-10pt}
 
         \resumeProjectHeading
-            {\textbf{{[PROJECT_3_NAME]}} $|$ \emph{\href{[PROJECT_3_URL]}{Website}{ $|$ }\href{[PROJECT_3_SOURCE]}{Source Code}}}{[PROJECT_3_TECH]}
+            {{\textbf{[PROJECT_3_NAME]}[PROJECT_3_LINKS]}}
+            {{[PROJECT_3_TECH]}}
             \\[5mm]
             \resumeItemListStart
                 \resumeItem{[PROJECT_3_DESC_1]}
             \resumeItemListEnd
+
     \resumeSubHeadingListEnd
+
 
 %-----------LEADERSHIP-----------
 \section{Leadership} 
@@ -572,18 +579,18 @@ A driven, inquisitive, and ambitious law graduate with First-Class Honours, aimi
 %-----------Experience---------------
 \section{Work Experience}
     \resumeSubHeadingListStart
-                \resumeSubheading{Milbank LLP}{Jan 2022 -- Present}{Legal Internship}{London} 
+                \resumeSubheading{Milbank LLP}{Jan 2022 -- Present}{Legal Internship}{}
                 \resumeItemListStart
                     \resumeItem{Completed a tax case study prepared by a Havard Law Professor, where I provided recommendations on settlement actions, utilising analytical skills to undertake due diligence, which informed my reccomendations}
                     \resumeItem{Demostrated communication skills in presented my case analysis, findings and recommendations}
                     
                     \resumeItemListEnd
-            \resumeSubheading{Paradigm Solicitors}{Jun 2020 -- Dec 2021}{Legal Internship}{London} 
+            \resumeSubheading{Paradigm Solicitors}{Jun 2020 -- Dec 2021}{Legal Internship}{} 
                 \resumeItemListStart
                     \resumeItem{Interned across multiple departments including conveyancing, immigration, family and property law where I participated in client meetings by taking detailed meeting notes, providing summaries for lawyers, and undertaking legal research on findings to support lawyers with the next steps.}
                     \resumeItem{Reviewed and drafted legal documents, such as leases and contracts, utilising keen attention to detail to accurately represent client interests.}
                     \resumeItemListEnd
-            \resumeSubheading{Nova Solicitors}{May 2019 -- May 2020}{Legal Internship}{London}
+            \resumeSubheading{Nova Solicitors}{May 2019 -- May 2020}{Legal Internship}{}
                 \resumeItemListStart
                     \resumeItem{Delivered thorough case summaries for client cases under demanding time constraints, showcasing efficient organisation and an unwavering attention to detail.}
                     \resumeItem{Conducted client comms on behalf of the company, developing my communication skills in taking client calls to gather key documentation and provide updates on ongoing cases.}
@@ -771,7 +778,7 @@ An innovative biomedical science graduate with significant internship experience
 %-----------Experience---------------
 \section{Work Experience}
     \resumeSubHeadingListStart
-                \resumeSubheading{Sampson Laboratories}{Jan 2022 -- Present}{Research Intern}{Newcastle} 
+                \resumeSubheading{Sampson Laboratories}{Jan 2022 -- Present}{Research Intern}{} 
                 \resumeItemListStart
                     \resumeItem{Completed a 3-month research internship in the R&D department}
                     \resumeItem{Analysed data using statistical methods and programming code, R and SAS}
@@ -780,7 +787,7 @@ An innovative biomedical science graduate with significant internship experience
                     \resumeItem{Conducted in vitro experiments to research and evaluate the efficacy of novel cell-based therapies for cancer treatment.}
                     
                     \resumeItemListEnd
-            \resumeSubheading{NHS Trust}{Jun 2020 -- Dec 2021}{Clinical Research Intern}{London} 
+            \resumeSubheading{NHS Trust}{Jun 2020 -- Dec 2021}{Clinical Research Intern}{} 
                 \resumeItemListStart
                     \resumeItem{Conducted diagnostic tests, including PCR and ELISA, for infectious diseases.}
                     \resumeItem{Assisted with the analysis of clinical data and interpretation of laboratory results.}
@@ -951,21 +958,21 @@ Dynamic and results-oriented professional with 5+ years of experience in project
 %-----------Experience---------------
 \section{Work Experience}
     \resumeSubHeadingListStart
-                \resumeSubheading{Horizon Global Solutions}{Jan 2022 -- Present}{Senior Project Manager}{Boston, MA} 
+                \resumeSubheading{Horizon Global Solutions}{Jan 2022 -- Present}{Senior Project Manager}{} 
                 \resumeItemListStart
                     \resumeItem{Led \textbf{15+ cross-functional projects} with budgets up to \textbf{\$2M}, consistently delivering on time and achieving a \textbf{95\% client satisfaction rate}}
                     \resumeItem{Implemented new project management methodologies that improved team efficiency by \textbf{40\%} and reduced project delivery time by \textbf{25\%}}
                     \resumeItem{Managed a team of \textbf{12 professionals}, providing mentorship and conducting performance reviews that resulted in \textbf{3 team promotions} within one year}
                     \resumeItem{Coordinated with C-suite executives and external stakeholders to align project objectives with business strategy, contributing to \textbf{\$5M in annual revenue growth}}
                     \resumeItemListEnd
-            \resumeSubheading{TechVenture Consulting}{Jun 2020 -- Dec 2021}{Project Coordinator}{Boston, MA} 
+            \resumeSubheading{TechVenture Consulting}{Jun 2020 -- Dec 2021}{Project Coordinator}{} 
                 \resumeItemListStart
                     \resumeItem{Coordinated \textbf{8 concurrent projects} across marketing, operations, and technology departments, ensuring seamless communication and timely deliverables}
                     \resumeItem{Developed comprehensive project documentation and reporting systems that improved transparency and reduced meeting time by \textbf{30\%}}
                     \resumeItem{Facilitated stakeholder meetings and presentations, effectively communicating project status, risks, and mitigation strategies to senior leadership}
                     \resumeItem{Assisted in budget planning and resource allocation, contributing to a \textbf{15\% reduction in operational costs}}
                     \resumeItemListEnd
-            \resumeSubheading{Global Innovations Inc.}{May 2019 -- May 2020}{Business Analyst}{Chicago, IL}
+            \resumeSubheading{Global Innovations Inc.}{May 2019 -- May 2020}{Business Analyst}{}
                 \resumeItemListStart
                     \resumeItem{Analyzed business processes and identified opportunities for improvement, leading to the implementation of \textbf{5 efficiency initiatives} that saved \textbf{\$200K annually}}
                     \resumeItem{Created detailed reports and dashboards for executive leadership, providing actionable insights that informed strategic decision-making}
@@ -981,12 +988,12 @@ Dynamic and results-oriented professional with 5+ years of experience in project
 \section{Education} \\[1mm]
   \resumeSubHeadingListStart
     \resumeSubheading
-      {Boston University}{Graduated: May 2019}
+      {University Of London}{Graduated: May 2019}
       {Bachelor of Business Administration | Concentration in Management
-      }{Boston, MA}
+      }{London}
   \resumeSubHeadingListEnd
     \resumeItemListStart
-        \resumeItem {\textbf{GPA: 3.7}}
+        \resumeItem {\textbf{GPA: 1st Class Honours}}
         \vspace{-7pt}
         \resumeItem {Courses: Strategic Management, Operations Management, Financial Analysis, Marketing Strategy, Business Analytics, Organizational Behavior}
     \resumeItemListEnd
@@ -1644,7 +1651,7 @@ async def generate_tech_cv(request: Request, data: dict, current_user=Depends(ge
     6. Tack keywords onto bullet ends like ", demonstrating X skill"
     7. Add a keyword without at least 1 piece of related or transferable evidence in CV
     8. Include "(inferred)" or any diagnostic labels in the visible CV output
-    9. Include "N/A", "Not Provided", "None" or blank values like "(GPA: )" - remove the field entirely if data is missing
+    9. Include "N/A", "Not Provided", "None", blank values like "(GPA: )" - remove the field entirely if data is missing
     10. Replicate the structural layout, columns, or item positioning of the input CV. 
 
 
@@ -2714,7 +2721,7 @@ async def generate_tailored_cover_letter(user_cv, job_desc, skills_analysis):
     system_message = f"""You are an expert cover letter writer specializing in tech roles.
 
 # IDENTITY
-You craft authentic, evidence-based cover letters that sound like they were written by a real professional — natural, confident, and specific. Your writing never feels generic, repetitive, or AI-generated.
+You craft authentic, evidence-based cover letters that sound like they were written by a real human, sounding professional, natural, confident, and specific. Your writing never feels generic, repetitive, or AI-generated.
 # INPUTS
 You will receive:
 1. job_description – the target job posting
@@ -2808,15 +2815,17 @@ IF no bridge exists or skill is not critical:
 
 # WRITING STYLE AND TONE RULES:
 
-- Tone: professional but conversational — write like a confident human, not a corporate press release.
-- Focus on clarity and substance, not empty formality.
+- Tone: professional but conversational — write like a confident human writing directly to another human.
+- Do not end paragraphs on vague motivation; end on a concrete action, result, or learning.
+- Prefer plain, natural sentence structures over formal or inflated phrasing.
 - Avoid buzzwords, clichés, or filler ("innovative", "cutting-edge", "fast-paced").
 - Prefer direct, active verbs: built, led, delivered, improved.
-- Show enthusiasm through specific achievements, not adjectives.
+- Show enthusiasm through specific achievements or outcomes, not adjectives.
 - Do not use corporate filler words like leverage, utilize, facilitate, cutting-edge, etc.
 - Avoid passive or apologetic phrasing.
-- Stick to ASCII characters only (no em dashes, curly quotes, ellipses).
-- Do NOT jump between unrelated points or mix multiple projects/experiences without clear connection.
+- NEVER use: '—', ASCII characters only.
+- Do NOT jump between unrelated points or mix multiple projects/experiences without a clear connection.
+
 
 
 
