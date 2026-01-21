@@ -3012,18 +3012,18 @@ async def generate_cover_letter_pdf(request: dict):
 
         if header_lines:
             # Name = left, bold
-            pdf.set_font("Arial", size=11)
+            pdf.set_font("Calibri", size=12)
             pdf.cell(0, 6, header_lines[0], ln=True, align='R')
 
             # Phone, Email, Date = right aligned
-            pdf.set_font("Arial", size=11)
+            pdf.set_font("Calibri", size=12)
             for line in header_lines[1:]:
                 pdf.cell(0, 6, line, ln=True, align='R')
 
         pdf.ln(8)
 
         # Body
-        pdf.set_font("Arial", size=11)
+        pdf.set_font("Calibri", size=12)
         for line in lines[body_start_index:]:
             if line.strip():
                 pdf.multi_cell(0, 6, line.strip())
