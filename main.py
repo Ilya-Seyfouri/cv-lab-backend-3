@@ -267,16 +267,14 @@ TECH_LATEX_CV_TEMPLATE = r"""
 \input{glyphtounicode}
 \usepackage[margin=1.4cm]{geometry}
 
-
 \pagestyle{fancy}
-\fancyhf{} % clear all header and footer fields
+\fancyhf{}
 \fancyfoot{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
 
-% Adjust margins
 \addtolength{\oddsidemargin}{-0.15in}
- \addtolength{\textwidth}{0.3in}
+\addtolength{\textwidth}{0.3in}
 
 \urlstyle{same}
 
@@ -284,16 +282,12 @@ TECH_LATEX_CV_TEMPLATE = r"""
 \raggedright
 \setlength{\tabcolsep}{0in}
 
-% Sections formatting
 \titleformat{\section}{
   \vspace{-4pt}\scshape\raggedright\large\bfseries
 }{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
 
-% Ensure that generate pdf is machine readable/ATS parsable
 \pdfgentounicode=1
 
-%-------------------------
-% Custom commands
 \newcommand{\resumeItem}[1]{
   \item\small{
     {#1 \vspace{0pt}}
@@ -338,117 +332,116 @@ TECH_LATEX_CV_TEMPLATE = r"""
 \newcommand{\resumeItemListStart}{\begin{itemize}}
 \newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
 
-
-
 \begin{document}
 
 %----------HEADING----------
 \begin{center}
-    {\Large \scshape Michael Scott} \\[2mm]
+    {\Large \scshape [FULL_NAME]} \\[2mm]
     \footnotesize \raisebox{-0.1\height}
-    \faPhone\ \underline{(123) 456-7890} ~ 
-    {\faEnvelope\  \underline{mscott@example.com}} ~ 
-    {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/michael-scott/}{linkedin.com/in/michael-scott}}  ~
-    {\faGithub\ \underline{\href{https://github.com/m-scott}{github.com/m-scott}} ~
-    {\faBriefcase\ \underline{\href{https://mscott-portfolio.vercel.app/}{mscott-portfolio.vercel.app/}}
+    {\faEnvelope\  \underline{[EMAIL]}} ~ 
+    {\faLinkedin\ \underline{\href{[LINKEDIN_URL]}{[LINKEDIN_DISPLAY]}}  ~
+    {\faGithub\ \underline{\href{[GITHUB_URL]}{[GITHUB_DISPLAY]}} ~
+    {\faBriefcase\ \underline{\href{[PORTFOLIO_URL]}{[PORTFOLIO_DISPLAY]}}
     \vspace{-8pt}
 \end{center}
 
- %-----------EDUCATION-----------
+%-----------EDUCATION-----------
 \section{Education} \\[1mm]
   \resumeSubHeadingListStart
     \resumeSubheading
-      {University of London}{Expected Graduation: May 2026}
-      {Bachelor of Computer Engineering | Minor Artificial Intelligence
-      }{London}
+      {[UNIVERSITY]}{Expected Graduation: [GRAD_DATE]}
+      {[DEGREE]
+      }{[LOCATION]}
   \resumeSubHeadingListEnd
     \resumeItemListStart
-        \resumeItem {Golden Key Honours Scholar | \textbf{GPA: First Class Honours}}
-        \vspace{-7pt}
-        \resumeItem {Courses: Software Engineering Practice, Applied Machine Learning, Operating Systems, Computer Architecture, Model-Based Programming, Algorithms and Data Structures, Intro. to Software Engineering}
+        \resumeItem {[HONORS] | \textbf{GPA: [GPA]}}
+        \resumeItem {Courses: [RELEVANT_COURSES]}
     \resumeItemListEnd
-    \vspace{-12pt}
+
 %-----------Experience---------------
 \section{Work Experience}
     \resumeSubHeadingListStart
-                \resumeSubheading{Tech Company}{May 2024 -- Sep 2024}{Machine Learning Engineer Intern}{}
-                \resumeItemListStart
-                    \resumeItem{Engineered \textbf{Large Language Models (LLMs)}, including \textbf{BERT} and \textbf{Attention Models}, to analyze software engineering requirements and generate accurate dependency lists, improving project planning efficiency by \textbf{37\%}}
-                    \resumeItem{Analyzed \textbf{1200+} software requirements monthly using \textbf{scikit-learn (classification models)}, \textbf{spaCy}, and \textbf{NLTK} in \textbf{Python}, saving the company \textbf{\$20,000 annually} by decreasing project lead times}
-                    \resumeItem{Integrated \textbf{TF-IDF vectorization} to detect similarities in software requirements, focusing on \textbf{preprocessing}, \textbf{model training}, \textbf{hyperparameter tuning} and \textbf{clustering} to optimize \textbf{NLP} analysis processes}
-                    \resumeItemListEnd
-            \resumeSubheading{Tech Company}{May 2023 -- Sep 2023}{Backend Engineer Intern}{}
-                \resumeItemListStart
-                    \resumeItem{Designed \textbf{30+ AWS Lambda Functions}, strategically leveraging \textbf{Lambda layers} to increase processing speed by \textbf{35\%} and re-usability by \textbf{52\%}, resulting in cost savings of \textbf{\$1,000} per large scale deployment}
-                    \resumeItem{Implemented \textbf{15+} server less workflows using \textbf{AWS Step Functions}, seamlessly integrating \textbf{REST APIs} and rigorously tested with \textbf{Postman},  resulting in a \textbf{65\%} reduction in execution time and enhanced operational efficiency}
-                    \resumeItem{Crafted a \textbf{Spring Boot} application with a \textbf{Drools} logic engine, containerized it using \textbf{Docker}, and seamlessly deployed it on \textbf{AWS} using \textbf{EC2}, strategically allocating cloud resources to ensure enhanced scalability and reliability}
-                    \resumeItemListEnd
-            \resumeSubheading{Tech Company}{Jun 2022 -- Sep 2022}{Software Engineer Intern}{}
-                \resumeItemListStart
-                    \resumeItem{Programmed and deployed a \textbf{Python}-based data migration pipeline on \textbf{Azure}, achieving a \textbf{50\% reduction} in transfer time for \textbf{100+ terabytes} of critical business data}
-                    \resumeItem{Centralized a \textbf{SQL} database infrastructure on \textbf{Azure}, enhancing data accessibility and security for \textbf{50+ stakeholders}, resulting in a \textbf{30\% improvement} in query performance across the organization}
-                    \resumeItemListEnd
+        \resumeSubheading{[COMPANY_1]}{[START_DATE_1] -- [END_DATE_1]}{[JOB_TITLE_1]}{}
+            \resumeItemListStart
+                \resumeItem{[ACHIEVEMENT_1_1]}
+                \resumeItem{[ACHIEVEMENT_1_2]}
+                \resumeItem{[ACHIEVEMENT_1_3]}
+            \resumeItemListEnd
+        \resumeSubheading{[COMPANY_2]}{[START_DATE_2] -- [END_DATE_2]}{[JOB_TITLE_2]}{}
+            \resumeItemListStart
+                \resumeItem{[ACHIEVEMENT_2_1]}
+                \resumeItem{[ACHIEVEMENT_2_2]}
+                \resumeItem{[ACHIEVEMENT_2_3]}
+            \resumeItemListEnd
+        \resumeSubheading{[COMPANY_3]}{[START_DATE_3] -- [END_DATE_3]}{[JOB_TITLE_3]}{}
+            \resumeItemListStart
+                \resumeItem{[ACHIEVEMENT_3_1]}
+                \resumeItem{[ACHIEVEMENT_3_2]}
+            \resumeItemListEnd
     \resumeSubHeadingListEnd
-    \vspace{-12pt}
 
 %-----------PROJECTS-----------
 \section{Projects} 
-    \vspace{-5pt}
     \resumeSubHeadingListStart
-    \resumeProjectHeading
-            {\textbf{{McGill Scheduler}} $|$ \emph{\href{https://mcgillscheduler.vercel.app/}{Website}{ $|$ }\href{https://github.com/Erik-Cupsa/McGill-Scheduler}{Source Code}}}{ReactJS $|$ Spring Boot $|$ PostgreSQL}
-            \\[5mm]
-          \resumeItemListStart
-            \resumeItem{Developed and deployed a full-stack web application that enhanced academic experiences of \textbf{1,000+ McGill students}}
-            \resumeItem{Utilized \textbf{PostgreSQL} for data storage, \textbf{Spring Boot} for a \textbf{RESTful API} backend, and \textbf{ReactJS} for the user interface}
-          \resumeItemListEnd
- \vspace{-20pt}
- \resumeProjectHeading
-            {\textbf{{Empor}} $|$ \emph{\href{https://empor.ca/}{Website}}}{NextJS $|$ TypeScript $|$ Spring Boot}
-            \\[5mm]
-          \resumeItemListStart
-            \resumeItem{\textbf{Led the development} of a full-stack marketplace application for \textbf{1,000+ university students}, utilizing \textbf{NextJS} and \textbf{TypeScript} for the frontend, \textbf{Prisma} as the ORM, \textbf{Supabase} for the database, and a \textbf{Spring Boot} backend}
-          \resumeItemListEnd
- \vspace{-17pt}
- \resumeProjectHeading
-{\textbf{{Premier League Match Predictor}} $|$ \emph{\href{https://premierzone.vercel.app/}{Website}{ $|$ }\href{https://github.com/Erik-Cupsa/PLWebsite}{Source Code}}}{Pandas $|$ Scikit-Learn $|$ Python}
-\\[5mm]
-\resumeItemListStart
-\resumeItem{Created a model to predict matches, integrating \textbf{data scraping} with \textbf{pandas} and \textbf{machine learning} with \textbf{scikit-learn}}
-\resumeItemListEnd
 
-\resumeSubHeadingListEnd
-\vspace{-28pt}
-%-----------EXTRACURRICULAR ACTIVITIES / LEADERSHIP-----------
-\section{Leadership}
-\resumeSubHeadingListStart
+        \resumeProjectHeading
+            {{\textbf{[PROJECT_1_NAME]}[PROJECT_1_LINKS]}}
+            {{[PROJECT_1_TECH]}}
+            \\[5mm]
+            \resumeItemListStart
+                \resumeItem{[PROJECT_1_DESC_1]}
+                \resumeItem{[PROJECT_1_DESC_2]}
+            \resumeItemListEnd
+            \vspace{-10pt}
 
-    \resumeSubheading
-  {Newcastle Coding Society}{}
-  {Vice President}{}
-\resumeItemListStart
-  \resumeItem{Led and coordinated hackathons and coding challanges for 1st year students and society members.}
-\resumeItemListEnd
-\resumeSubHeadingListEnd
-\vspace{-12pt}
-  %-----------PROGRAMMING SKILLS-----------
+        \resumeProjectHeading
+            {{\textbf{[PROJECT_2_NAME]}[PROJECT_2_LINKS]}}
+            {{[PROJECT_2_TECH]}}
+            \\[5mm]
+            \resumeItemListStart
+                \resumeItem{[PROJECT_2_DESC_1]}
+            \resumeItemListEnd
+            \vspace{-10pt}
+
+        \resumeProjectHeading
+            {{\textbf{[PROJECT_3_NAME]}[PROJECT_3_LINKS]}}
+            {{[PROJECT_3_TECH]}}
+            \\[5mm]
+            \resumeItemListStart
+                \resumeItem{[PROJECT_3_DESC_1]}
+            \resumeItemListEnd
+
+    \resumeSubHeadingListEnd
+
+
+%-----------LEADERSHIP-----------
+\section{Leadership} 
+    \resumeSubHeadingListStart
+        \resumeProjectHeading
+            {\textbf{[LEADERSHIP_1_NAME]}}{[LEADERSHIP_1_DATE]}
+            \\[2mm]
+            \resumeItemListStart
+                \resumeItem{[LEADERSHIP_1_DESC_1]}
+                \resumeItem{[LEADERSHIP_1_DESC_2]}
+            \resumeItemListEnd
+            \vspace{-10pt}
+
+    \resumeSubHeadingListEnd
+
+%-----------SKILLS-----------
 \section{Technical Skills}
  \begin{itemize}[leftmargin=0.15in, label={}]
     \small{\item{   
-     \textbf{Languages}{: Python, Java, SQL, HTML5, CSS, JavaScript, Go, C, VHDL} \\[1mm]
-     \textbf{Developer Tools}{: AWS, Postman, PowerBI, Git, Azure, Docker, Jira} \\[1mm]
-     \textbf{Libraries/Frameworks}{: Spring Boot, ReactJS, PostgreSQL, NextJS, VueJS, NodeJS} \\ [1mm]
+     \textbf{Languages}{: [PROGRAMMING_LANGUAGES]} \\[1mm]
+     \textbf{Libraries/Frameworks}{: [FRAMEWORKS]} \\ [1mm]
     }}
  \end{itemize}
  \vspace{-16pt}
  \vspace{3pt}
 \vspace{10pt}
 
-\vspace{-15pt}
-
-
-
 \end{document}
+
 
 """
 
@@ -3012,18 +3005,18 @@ async def generate_cover_letter_pdf(request: dict):
 
         if header_lines:
             # Name = left, bold
-            pdf.set_font("Calibri", size=12)
+            pdf.set_font("Times", size=14)
             pdf.cell(0, 6, header_lines[0], ln=True, align='R')
 
             # Phone, Email, Date = right aligned
-            pdf.set_font("Calibri", size=12)
+            pdf.set_font("Times", size=14)
             for line in header_lines[1:]:
                 pdf.cell(0, 6, line, ln=True, align='R')
 
         pdf.ln(8)
 
         # Body
-        pdf.set_font("Calibri", size=12)
+        pdf.set_font("Times", size=14)
         for line in lines[body_start_index:]:
             if line.strip():
                 pdf.multi_cell(0, 6, line.strip())
