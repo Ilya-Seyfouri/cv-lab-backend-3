@@ -1641,6 +1641,8 @@ async def generate_tech_cv(request: Request, data: dict, current_user=Depends(ge
     7. Output ONLY raw LaTeX code (no markdown, no wrapped code blocks)
     8. Remove any placeholders with missing data rather than using "N/A", "Not Provided", "None"
     9. Follow the single-column structure and item positioning of the template cv defined in {TECH_LATEX_CV_TEMPLATE}.
+    10. For project links: If no URL exists in the CV, leave [PROJECT_X_LINKS] completely empty (not "N/A", not blank links)
+
 
 
     NEVER:
@@ -1654,6 +1656,8 @@ async def generate_tech_cv(request: Request, data: dict, current_user=Depends(ge
     8. Include "(inferred)" or any diagnostic labels in the visible CV output
     9. Include "N/A", "Not Provided", "None", blank values like "(GPA: )" - remove the field entirely if data is missing
     10. Replicate the structural layout, columns, or item positioning of the input CV. 
+    11. Fabricate GitHub links, portfolio URLs, or any project links not in the original CV
+    12. Add placeholder links like "github.com/username/project" or "N/A" for missing links
 
 
     # OUTPUT FORMAT
