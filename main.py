@@ -385,7 +385,7 @@ TECH_LATEX_CV_TEMPLATE = r"""
     \resumeSubHeadingListStart
 
         \resumeProjectHeading
-            {{\textbf{[PROJECT_1_NAME]}[PROJECT_1_LINKS]}}
+            {{\textbf{[PROJECT_1_NAME]} [PROJECT_1_LINKS]}}
             {{[PROJECT_1_TECH]}}
             \\[5mm]
             \resumeItemListStart
@@ -395,7 +395,7 @@ TECH_LATEX_CV_TEMPLATE = r"""
             \vspace{-10pt}
 
         \resumeProjectHeading
-            {{\textbf{[PROJECT_2_NAME]}[PROJECT_2_LINKS]}}
+            {{\textbf{[PROJECT_2_NAME]} [PROJECT_2_LINKS]}}
             {{[PROJECT_2_TECH]}}
             \\[5mm]
             \resumeItemListStart
@@ -404,7 +404,7 @@ TECH_LATEX_CV_TEMPLATE = r"""
             \vspace{-10pt}
 
         \resumeProjectHeading
-            {{\textbf{[PROJECT_3_NAME]}[PROJECT_3_LINKS]}}
+            {{\textbf{[PROJECT_3_NAME]} [PROJECT_3_LINKS]}}
             {{[PROJECT_3_TECH]}}
             \\[5mm]
             \resumeItemListStart
@@ -441,7 +441,6 @@ TECH_LATEX_CV_TEMPLATE = r"""
 \vspace{10pt}
 
 \end{document}
-
 
 """
 
