@@ -2911,16 +2911,7 @@ async def generate_cover_letter(request: Request, data: dict, current_user=Depen
         raise HTTPException(status_code=400, detail="Both CV and job description are required")
 
     # Check credits (but don't deduct - CV endpoint already deducted)
-    profile = await get_user_credits(current_user.id)
-    if profile.get('credits_remaining', 0) < 0:
-        raise HTTPException(
-            status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail={
-                "error": "no_credits",
-                "message": "You've used all your credits. Purchase more tokens or subscribe to continue.",
-                "credits_remaining": 0
-            }
-        )
+    await check_and_use_credit(current_user.id)
 
     # ✅ Initialize job_info with default value FIRST
     job_info = {"role_title": ""}
