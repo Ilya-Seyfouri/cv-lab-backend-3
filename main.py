@@ -148,7 +148,7 @@ CORPORATE_LATEX_CV_TEMPLATE = r"""
     {\Large \scshape Alexander J. Morgan} \\[2mm]
     \footnotesize \raisebox{-0.1\height}
     \faPhone\ \underline{07715278065} ~ 
-    {\faEnvelope\  \underline{alex.morgan@email.com}} ~ 
+    {\faEnvelope\ \underline{alex.morgan@email.com}} ~ 
     {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/alexjmorgan}{linkedin.com/in/alexjmorgan}}
     \vspace{-8pt}
 \end{center}
@@ -549,7 +549,7 @@ LAW_LATEX_CV_TEMPLATE = r"""
     {\Large \scshape Sarah Martinez} \\[2mm]
     \footnotesize \raisebox{-0.1\height}
     \faPhone\ \underline{07715278067} ~ 
-    {\faEnvelope\  \underline{sarah.martinez@email.com}} ~ 
+    {\faEnvelope\ \underline{sarah.martinez@email.com}} ~ 
     {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/sarahmartinez}{linkedin.com/in/sarahmartinez}}  ~
     \vspace{-8pt}
 \end{center}
@@ -748,7 +748,7 @@ MEDICAL_LATEX_CV_TEMPLATE = r"""
     {\Large \scshape Sarah Martinez} \\[2mm]
     \footnotesize \raisebox{-0.1\height}
     \faPhone\ \underline{07715278067} ~ 
-    {\faEnvelope\  \underline{sarah.martinez@email.com}} ~ 
+    {\faEnvelope\ \underline{sarah.martinez@email.com}} ~ 
     {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/sarahmartinez}{linkedin.com/in/sarahmartinez}}  ~
     \vspace{-8pt}
 \end{center}
@@ -944,7 +944,7 @@ GENERIC_LATEX_CV_TEMPLATE = r"""
     {\Large \scshape Sarah Martinez} \\[2mm]
     \footnotesize \raisebox{-0.1\height}
     \faPhone\ \underline{07715278067} ~ 
-    {\faEnvelope\  \underline{sarah.martinez@email.com}} ~ 
+    {\faEnvelope\ \underline{sarah.martinez@email.com}} ~ 
     {\faLinkedin\ \underline{\href{https://www.linkedin.com/in/sarahmartinez}{linkedin.com/in/sarahmartinez}}  ~
     \vspace{-8pt}
 \end{center}
