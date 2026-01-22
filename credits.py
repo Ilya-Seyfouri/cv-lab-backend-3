@@ -54,10 +54,8 @@ async def check_and_use_credit(user_id: str):
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail={
                 "error": "no_credits",
-                "message": "You've used all your credits. Purchase more tokens or subscribe to continue.",
-                "credits_remaining": 0,
-                "is_subscribed": profile.get('is_subscribed', False),
-                "subscription_status": profile.get('subscription_status', 'free')
+                "message": "You're out of credits! Upgrade to Premium to continue.",
+
             }
         )
 

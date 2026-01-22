@@ -2910,8 +2910,7 @@ async def generate_cover_letter(request: Request, data: dict, current_user=Depen
     if not job_description or not user_cv:
         raise HTTPException(status_code=400, detail="Both CV and job description are required")
 
-    # Check credits (but don't deduct - CV endpoint already deducted)
-    await check_and_use_credit(current_user.id)
+
 
     # ✅ Initialize job_info with default value FIRST
     job_info = {"role_title": ""}
